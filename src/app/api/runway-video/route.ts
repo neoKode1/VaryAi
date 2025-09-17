@@ -122,7 +122,7 @@ export async function POST(request: NextRequest) {
     const body: RunwayVideoRequest = await request.json();
     console.log('✅ Request body parsed successfully');
     
-    const { files, prompt, model, ratio = '1280:720', duration, promptText, seed, references } = body;
+    const { files, prompt, model, ratio, duration, promptText, seed, references } = body;
     
     console.log(`📋 Prompt: "${prompt}"`);
     console.log(`🤖 Model: ${model}`);

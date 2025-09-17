@@ -14,7 +14,7 @@ export async function POST(request: NextRequest) {
     console.log(`🚀 [${requestId}] Minimax 2.0 T2V - Request started`);
     
     const body = await request.json();
-    const { prompt, duration = "5", aspect_ratio = "16:9", negative_prompt = "blur, distort, and low quality", cfg_scale = 0.5 } = body;
+    const { prompt, duration = "5", aspect_ratio, negative_prompt = "blur, distort, and low quality", cfg_scale = 0.5 } = body;
 
     console.log(`📋 [${requestId}] Request parameters:`, {
       prompt: prompt?.substring(0, 100) + (prompt?.length > 100 ? '...' : ''),

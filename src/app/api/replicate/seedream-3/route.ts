@@ -16,7 +16,7 @@ export async function POST(request: NextRequest) {
       size = 'regular', 
       width = 2048, 
       height = 2048, 
-      aspectRatio = '16:9', 
+      aspectRatio, 
       guidanceScale = 2.5,
       userId 
     } = body;

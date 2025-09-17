@@ -1005,16 +1005,19 @@ RESPECT THE USER'S CREATIVE VISION - do not standardize or genericize their spec
                 image_urls: imageUrls, // Use all uploaded image URLs for multi-image processing
                 num_images: 1,
                 output_format: generationSettings?.outputFormat || "jpeg",
-                aspect_ratio: generationSettings?.aspectRatio || "1:1", // Add aspect ratio support
+                // Note: Editor models don't support aspect_ratio - we'll reframe after generation
                 sync_mode: false // Return URLs instead of data URIs
               };
               
-              console.log('🎯 [CHARACTER VARIATION API] FAL API input with aspect ratio:', {
+              // Debug: Log the exact input we're sending to FAL AI
+              console.log(`🔍 [FAL AI DEBUG] Exact input being sent to ${modelName}:`, JSON.stringify(falInput, null, 2));
+              
+              console.log('🎯 [CHARACTER VARIATION API] FAL API input (editor model):', {
                 model: modelName,
-                aspect_ratio: falInput.aspect_ratio,
                 output_format: falInput.output_format,
                 num_images: falInput.num_images,
                 image_urls_count: falInput.image_urls.length,
+                note: 'Editor models use input image aspect ratio - will reframe after generation',
                 timestamp: new Date().toISOString()
               });
               
@@ -1031,14 +1034,79 @@ RESPECT THE USER'S CREATIVE VISION - do not standardize or genericize their spec
               
               console.log(`✅ [CHARACTER COMBINATION] ${modelName} API call completed for ${variation.angle}`);
               console.log(`📊 [CHARACTER COMBINATION] Result data:`, result.data);
+              
+              // Debug: Check if FAL AI actually used our aspect ratio parameter
+              console.log(`🔍 [FAL AI DEBUG] Full FAL AI response:`, JSON.stringify(result, null, 2));
               return result;
             });
 
             console.log(`✅ Image ${index + 1} generated successfully`);
             
+            // Stage 2: Reframe the image to the desired aspect ratio if needed
+            let finalImageUrl = result.data.images[0]?.url;
+            if (finalImageUrl && generationSettings?.aspectRatio && generationSettings.aspectRatio !== '1:1') {
+              console.log(`🔄 [ASPECT RATIO REFRAME] Starting reframe process...`);
+              console.log(`🔄 [ASPECT RATIO REFRAME] Original image: ${finalImageUrl}`);
+              console.log(`🔄 [ASPECT RATIO REFRAME] Target aspect ratio: ${generationSettings.aspectRatio}`);
+              
+              try {
+                const reframeResult = await fal.subscribe('fal-ai/image-editing/reframe', {
+                  input: {
+                    image_url: finalImageUrl,
+                    aspect_ratio: generationSettings.aspectRatio,
+                    output_format: generationSettings?.outputFormat || 'jpeg',
+                    guidance_scale: 3.5,
+                    num_inference_steps: 30,
+                    safety_tolerance: '2',
+                    sync_mode: false
+                  },
+                  logs: true,
+                  onQueueUpdate: (update) => {
+                    if (update.status === "IN_PROGRESS") {
+                      console.log(`📊 [REFRAME] Progress:`, update.logs?.map(log => log.message).join(', '));
+                    }
+                  },
+                });
+                
+                if (reframeResult.data?.images?.[0]?.url) {
+                  finalImageUrl = reframeResult.data.images[0].url;
+                  console.log(`✅ [ASPECT RATIO REFRAME] Successfully reframed to ${generationSettings.aspectRatio}`);
+                  console.log(`✅ [ASPECT RATIO REFRAME] Final image: ${finalImageUrl}`);
+                } else {
+                  console.log(`⚠️ [ASPECT RATIO REFRAME] Reframe failed, using original image`);
+                }
+              } catch (reframeError) {
+                console.error(`❌ [ASPECT RATIO REFRAME] Error:`, reframeError);
+                console.log(`⚠️ [ASPECT RATIO REFRAME] Using original image due to reframe error`);
+              }
+            }
+            
+            // Test: Log aspect ratio information for debugging
+            if (finalImageUrl) {
+              console.log(`🔍 [ASPECT RATIO TEST] ===== ASPECT RATIO VERIFICATION =====`);
+              console.log(`🔍 [ASPECT RATIO TEST] Expected aspect ratio: ${generationSettings?.aspectRatio}`);
+              console.log(`🔍 [ASPECT RATIO TEST] Final image URL: ${finalImageUrl}`);
+              console.log(`🔍 [ASPECT RATIO TEST] FAL Input sent:`, {
+                aspect_ratio: generationSettings?.aspectRatio,
+                model: 'fal-ai/nano-banana/edit',
+                prompt: nanoBananaPrompt.substring(0, 100) + '...'
+              });
+              
+              // Calculate expected aspect ratio from string (e.g., "21:9" -> 21/9 = 2.33)
+              const expectedRatio = generationSettings?.aspectRatio;
+              let expectedAspectRatio = 1;
+              if (expectedRatio && expectedRatio.includes(':')) {
+                const [w, h] = expectedRatio.split(':').map(Number);
+                expectedAspectRatio = w / h;
+                console.log(`🔍 [ASPECT RATIO TEST] Expected ratio calculation: ${w}:${h} = ${expectedAspectRatio.toFixed(3)}`);
+              }
+              
+              console.log(`🔍 [ASPECT RATIO TEST] ===== END ASPECT RATIO VERIFICATION =====`);
+            }
+            
             return {
               ...variation,
-              imageUrl: result.data.images[0]?.url || undefined,
+              imageUrl: finalImageUrl || undefined,
               fileType: 'image' // Gemini 2.5 Flash Image generates images, not videos
             };
           } catch (error) {

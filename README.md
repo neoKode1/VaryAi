@@ -1,6 +1,6 @@
-# vARY Ai - Advanced Character Variation Generator
+# vARY Ai - Advanced AI Generation Platform
 
-A cutting-edge AI-powered Next.js application that generates stunning character variations from multiple angles using Google Gemini 2.0 Flash and Fal AI. Upload character images and get professional-quality variations while maintaining perfect character consistency across all angles.
+A cutting-edge AI-powered Next.js application featuring character variations, image generation, video creation, and community features. Built with Google Gemini 2.0 Flash, Fal AI, and multiple premium AI models for professional-quality content generation with advanced credit system and user management.
 
 ## 🖼️ Application Preview
 
@@ -33,6 +33,8 @@ A cutting-edge AI-powered Next.js application that generates stunning character 
 - **Analytics Dashboard**: User statistics, generation counts, and performance metrics
 - **Transparent UI**: Modern glass-morphism design with blur effects
 - **Navigation**: Seamless access to generate, community, and profile features
+- **Credit System**: Advanced pay-per-use model with Stripe integration
+- **User Management**: Authentication, profiles, and usage tracking
 
 ### 🌟 **Community Features**
 - **Tha Communita**: Interactive message board with posts, comments, and likes
@@ -47,16 +49,19 @@ A cutting-edge AI-powered Next.js application that generates stunning character 
 - **Grid preview**: See all uploaded images in an organized layout
 
 ### 🧠 **Advanced AI Processing**
+- **Multiple AI Models**: Google Gemini 2.0 Flash, Fal AI, Replicate, Runway, Minimax, and more
 - **Dual AI workflow**: Google Gemini 2.0 Flash for analysis + Fal AI nano-banana for image generation
 - **Intelligent analysis**: Deep character understanding from multiple reference images
 - **Enhanced prompts**: Context-aware processing for better consistency
 - **Content safety**: Automatic content policy handling and sanitization
+- **Aspect Ratio Handling**: Smart aspect ratio management for different content types
 
 ### 🖼️ **Professional Image Generation**
 - **High-quality outputs**: Generated images in JPEG format
 - **Character consistency**: Maintains exact features, clothing, and style across variations
 - **4 unique angles**: Professional camera angles and perspectives
 - **Fallback handling**: Graceful degradation when image generation is restricted
+- **Multiple Models**: Nano Banana, Runway T2I, Seedream 4, Gemini Flash Edit, Luma Photon Reframe
 
 ### 🎯 **Interactive Gallery System**
 - **Persistent storage**: Local browser storage for all generated variations
@@ -71,11 +76,27 @@ A cutting-edge AI-powered Next.js application that generates stunning character 
 - **Infinite creativity**: Build chains of variations for endless possibilities
 - **Smart prompting**: Reuses context from original generation
 
+### 💳 **Credit System & Payments**
+- **Pay-per-use Model**: Credits deducted per generation based on model costs
+- **Stripe Integration**: Secure payment processing with real card input
+- **New User Grace Period**: 48-hour free trial for new users
+- **Credit Display**: Real-time credit balance with grace period status
+- **Purchase Modal**: Easy credit top-up with multiple tier options
+- **Usage Tracking**: Comprehensive logging of all generations and costs
+
 ### 🎨 **Modern Dark UI**
 - **Sleek design**: Dark gray theme with white accents
 - **Responsive layout**: Perfect on desktop, tablet, and mobile
 - **Intuitive controls**: Clean button layout and visual hierarchy
 - **Loading states**: Beautiful progress indicators and status updates
+- **Mobile Optimization**: Fixed bottom input interface for mobile devices
+
+### 🎬 **Video Generation**
+- **Image-to-Video Models**: Veo3 Fast, MiniMax End Frame, Kling 2.1 Master, Lucy 14B Video
+- **Multiple Formats**: Support for various video generation models and styles
+- **Processing Indicators**: Real-time status updates during video generation
+- **Gallery Integration**: Videos appear in gallery with processing status
+- **Aspect Ratio Inheritance**: Smart aspect ratio handling from input images
 
 ### 📋 **Comprehensive Prompt Library**
 - **Quick examples**: Basic prompts for common angles
@@ -99,6 +120,18 @@ GOOGLE_API_KEY=your_google_api_key_here
 
 # Fal AI API key from: https://fal.ai/dashboard
 FAL_KEY=your_fal_api_key_here
+
+# Supabase Configuration
+NEXT_PUBLIC_SUPABASE_URL=your_supabase_url
+SUPABASE_SERVICE_ROLE_KEY=your_supabase_service_role_key
+
+# Stripe Payment Processing
+STRIPE_SECRET_KEY=your_stripe_secret_key
+NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=your_stripe_publishable_key
+
+# Additional AI Model APIs
+RUNWAYML_API_SECRET=your_runway_api_secret
+REPLICATE_API_TOKEN=your_replicate_api_token
 ```
 
 ### 3. Run Development Server
@@ -170,8 +203,13 @@ Open [http://localhost:3000](http://localhost:3000) in your browser.
 - **Next.js 14** - React framework with App Router architecture
 - **TypeScript** - Type safety and enhanced development experience
 - **Tailwind CSS** - Utility-first CSS framework for responsive design
+- **Supabase** - Backend-as-a-Service for authentication, database, and storage
+- **Stripe** - Payment processing and subscription management
 - **Google Gemini 2.0 Flash** - Advanced AI for character image analysis
-- **Fal AI nano-banana/edit** - State-of-the-art image generation model
+- **Fal AI** - State-of-the-art image generation models
+- **Replicate** - AI model hosting and inference platform
+- **Runway ML** - Video generation and editing AI
+- **Minimax** - Advanced video generation models
 - **Lucide React** - Beautiful, customizable icon library
 - **Local Storage API** - Persistent gallery storage in browser
 
@@ -219,11 +257,19 @@ VaryAi/
 |----------|-------------|----------|----------|
 | `GOOGLE_API_KEY` | Google Gemini 2.0 Flash API key | Yes | [AI Studio](https://aistudio.google.com/app/apikey) |
 | `FAL_KEY` | Fal AI API key for image generation | Yes | [Fal AI Dashboard](https://fal.ai/dashboard) |
+| `NEXT_PUBLIC_SUPABASE_URL` | Supabase project URL | Yes | [Supabase Dashboard](https://supabase.com/dashboard) |
+| `SUPABASE_SERVICE_ROLE_KEY` | Supabase service role key | Yes | [Supabase Dashboard](https://supabase.com/dashboard) |
+| `STRIPE_SECRET_KEY` | Stripe secret key for payments | Yes | [Stripe Dashboard](https://dashboard.stripe.com/apikeys) |
+| `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY` | Stripe publishable key | Yes | [Stripe Dashboard](https://dashboard.stripe.com/apikeys) |
+| `RUNWAYML_API_SECRET` | Runway ML API secret | Optional | [Runway ML](https://runwayml.com/) |
+| `REPLICATE_API_TOKEN` | Replicate API token | Optional | [Replicate](https://replicate.com/) |
 
 ### API Key Setup
 1. **Google Gemini**: Create account at [AI Studio](https://aistudio.google.com/app/apikey)
 2. **Fal AI**: Sign up at [Fal AI](https://fal.ai/dashboard) and get your API key
-3. **Environment**: Add both keys to your `.env.local` file
+3. **Supabase**: Create project at [Supabase](https://supabase.com/dashboard) and get URL + service key
+4. **Stripe**: Create account at [Stripe](https://dashboard.stripe.com/apikeys) and get API keys
+5. **Environment**: Add all keys to your `.env.local` file
 
 ## Development
 
@@ -296,15 +342,21 @@ This project is licensed under the ISC License.
 ## 🎯 Key Features Summary
 
 ✅ **Multi-image upload** with smart file handling  
-✅ **Dual AI processing** (Gemini + Fal AI)  
+✅ **Multiple AI models** (Gemini, Fal AI, Replicate, Runway, Minimax)  
 ✅ **Persistent gallery** with full-screen navigation  
 ✅ **Iterative variation** system with "Vary" buttons  
+✅ **Video generation** with image-to-video models  
+✅ **Credit system** with Stripe payment integration  
+✅ **User authentication** and profile management  
+✅ **Community features** with posts and interactions  
+✅ **Mobile optimization** with fixed bottom interface  
 ✅ **Content safety** handling and sanitization  
 ✅ **Dark theme** with modern, responsive UI  
 ✅ **Professional prompts** library with categorization  
 ✅ **Real-time progress** tracking and status updates  
+✅ **New user grace period** with 48-hour free trial  
 
 ---
 
 🚀 **Built with cutting-edge AI technology**  
-**Next.js 14** • **Google Gemini 2.0 Flash** • **Fal AI nano-banana** • **TypeScript** • **Tailwind CSS**
+**Next.js 14** • **Supabase** • **Stripe** • **Google Gemini 2.0 Flash** • **Fal AI** • **Replicate** • **Runway ML** • **TypeScript** • **Tailwind CSS**

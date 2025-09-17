@@ -1254,7 +1254,7 @@ export default function SecretPage() {
           model: generationMode,
           prompt: 'A futuristic cityscape with flying cars during sunset',
           duration: 5,
-          aspectRatio: '16:9'
+          aspectRatio: '16:9' // Default for testing - can be made configurable
         };
       } else if (['nano-banana-edit', 'qwen-image-edit'].includes(generationMode)) {
         // Image editing models

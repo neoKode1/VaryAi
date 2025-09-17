@@ -19,7 +19,7 @@ export async function POST(request: NextRequest) {
   try {
     console.log(`🚀 [${requestId}] Minimax 2.0 I2V - Request started`);
     
-    const { prompt, image_url, prompt_optimizer = true, aspect_ratio = "16:9" } = await request.json();
+    const { prompt, image_url, prompt_optimizer = true, aspect_ratio } = await request.json();
 
     console.log(`📋 [${requestId}] Request parameters:`, {
       prompt: prompt?.substring(0, 100) + (prompt?.length > 100 ? '...' : ''),

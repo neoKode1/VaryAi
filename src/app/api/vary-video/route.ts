@@ -19,6 +19,7 @@ interface VideoVariationRequest {
   mimeTypes?: string[];
   prompt: string;
   model: 'decart-lucy-14b' | 'minimax-i2v-director' | 'hailuo-02-pro' | 'kling-video-pro' | 'veo3-fast' | 'minimax-2.0' | 'kling-2.1-master' | 'minimax-video-01' | 'stable-video-diffusion-i2v' | 'modelscope-i2v' | 'text2video-zero-i2v' | 'wan-v2-2-a14b-i2v-lora' | 'cogvideo-i2v' | 'zeroscope-t2v';
+  aspectRatio?: string;
 }
 
 interface VideoVariation {
@@ -362,7 +363,7 @@ export async function POST(request: NextRequest) {
     console.log('✅ [VIDEO VARIANCE] User has required permissions');
 
     console.log('📥 [VIDEO VARIANCE] Parsing request JSON...');
-    const { images, mimeTypes, prompt, model }: VideoVariationRequest = await request.json();
+    const { images, mimeTypes, prompt, model, aspectRatio }: VideoVariationRequest = await request.json();
 
     console.log('📋 [VIDEO VARIANCE] Request details:', {
       imageCount: images?.length || 0,
@@ -473,7 +474,8 @@ export async function POST(request: NextRequest) {
           const result = await callVideoModel(model, {
             image_url: imageUrls[0], // Use first (and typically only) image
             prompt: variationPrompt,
-            variation_index: index
+            variation_index: index,
+            aspectRatio: aspectRatio
           });
           
           console.log(`✅ [VIDEO VARIANCE] Variation ${index + 1} - Video model API call successful!`);
@@ -584,6 +586,7 @@ async function callVideoModel(
     image_url: string; 
     prompt: string; 
     variation_index: number;
+    aspectRatio?: string;
   }
 ): Promise<{ 
   videoUrl: string; 
@@ -591,7 +594,7 @@ async function callVideoModel(
   thumbnailUrl?: string;
 }> {
   
-  const { image_url, prompt, variation_index } = input;
+  const { image_url, prompt, variation_index, aspectRatio } = input;
 
   // Add variation to seed/parameters to ensure different outputs
   const variationSeed = Math.floor(Math.random() * 1000000) + variation_index * 10000;
@@ -608,7 +611,7 @@ async function callVideoModel(
       seed: variationSeed,
       fps: 25,
       duration: 4,
-      aspect_ratio: '16:9'
+      aspect_ratio: aspectRatio || '16:9' // Use aspect ratio from input image or default
     };
   } else if (model === 'minimax-video-01') {
     // Use Minimax Hailuo 02 Pro endpoint (correct image-to-video model)

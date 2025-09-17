@@ -23,7 +23,7 @@ const MODEL_CONFIGS = {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { model, prompt, duration = 5, aspectRatio = '16:9', seed } = body;
+    const { model, prompt, duration = 5, aspectRatio, seed } = body;
 
     if (!model || !MODEL_CONFIGS[model as keyof typeof MODEL_CONFIGS]) {
       return NextResponse.json({ 

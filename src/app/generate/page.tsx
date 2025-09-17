@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useCallback, useEffect, useMemo, useRef } from 'react';
-import { Upload, Download, Loader2, RotateCcw, Camera, Sparkles, Images, X, Trash2, Plus, ChevronLeft, ChevronRight, ChevronDown, ChevronUp, Edit, MessageCircle, HelpCircle, ArrowRight, ArrowUp, FolderOpen, Grid3X3, User, Settings } from 'lucide-react';
+import { Upload, Download, Loader2, RotateCcw, Camera, Sparkles, Images, X, Trash2, Plus, ChevronLeft, ChevronRight, ChevronDown, ChevronUp, Edit, MessageCircle, HelpCircle, ArrowRight, ArrowUp, FolderOpen, Grid3X3, User, Settings, Send } from 'lucide-react';
 import { useRouter, usePathname } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
 import { useCreditCheck } from '@/hooks/useCreditCheck';
@@ -2216,7 +2216,7 @@ export default function Home() {
           prompt: prompt.trim(),
           styleReference,
           model: 'gen4_image',
-          ratio: '1024:1024'
+          ratio: generationSettings.aspectRatio
         }),
       });
 
@@ -2525,7 +2525,7 @@ export default function Home() {
           image: imageInput,
           duration: 5,
           resolution: '1080p',
-          aspectRatio: '16:9',
+          aspectRatio: generationSettings.aspectRatio,
           fps: 24,
           cameraFixed: false,
           userId: user?.id
@@ -3913,14 +3913,16 @@ export default function Home() {
         images: uploadedFiles.map(img => img.base64),
         mimeTypes: uploadedFiles.map(img => img.mimeType || 'image/jpeg'),
         prompt: finalPrompt,
-        model: generationMode
+        model: generationMode,
+        aspectRatio: generationSettings.aspectRatio // Pass user's aspect ratio setting
       };
       
       console.log('📦 [FRONTEND VIDEO VARIANCE] Request body details:', {
         imageCount: requestBody.images.length,
         model: requestBody.model,
         promptLength: requestBody.prompt.length,
-        mimeTypesCount: requestBody.mimeTypes.length
+        mimeTypesCount: requestBody.mimeTypes.length,
+        aspectRatio: requestBody.aspectRatio
       });
       
       // Log each image being sent
@@ -4540,7 +4542,7 @@ export default function Home() {
         files: uploadedFiles.map(file => file.base64),
         prompt: prompt.trim(),
         model,
-        ratio: '1280:720', // Default ratio for gen4_aleph
+        ratio: generationSettings.aspectRatio, // Use user's selected aspect ratio
         duration: 6, // Frame-to-frame generation creates ~6s videos
         promptText: prompt.trim()
       };
@@ -6918,7 +6920,7 @@ export default function Home() {
                       {processing.isProcessing ? (
                         <Loader2 className="mobile-send-icon animate-spin" />
                       ) : (
-                        <ArrowRight className="mobile-send-icon" />
+                        <Send className="mobile-send-icon" />
                       )}
                     </button>
                   ) : hasVideoFiles ? (
@@ -6932,7 +6934,7 @@ export default function Home() {
                       {processing.isProcessing ? (
                         <Loader2 className="mobile-send-icon animate-spin" />
                       ) : (
-                        <ArrowRight className="mobile-send-icon" />
+                        <Send className="mobile-send-icon" />
                       )}
                     </button>
                   ) : (
@@ -6946,7 +6948,7 @@ export default function Home() {
                       {processing.isProcessing ? (
                         <Loader2 className="mobile-send-icon animate-spin" />
                       ) : (
-                        <ArrowRight className="mobile-send-icon" />
+                        <Send className="mobile-send-icon" />
                       )}
                     </button>
                   )}

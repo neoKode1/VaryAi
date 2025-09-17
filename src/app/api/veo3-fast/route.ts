@@ -15,7 +15,7 @@ if (process.env.FAL_KEY) {
 
 export async function POST(request: NextRequest) {
   try {
-    const { prompt, image_url, duration = "8s", generate_audio = true, resolution = "720p" } = await request.json();
+    const { prompt, image_url, duration = "8s", generate_audio = true, resolution = "720p", aspectRatio } = await request.json();
 
     if (!prompt || !image_url) {
       return NextResponse.json(
@@ -46,7 +46,8 @@ export async function POST(request: NextRequest) {
         image_url,
         duration,
         generate_audio,
-        resolution
+        resolution,
+        ...(aspectRatio && { aspect_ratio: aspectRatio })
       }
     };
     

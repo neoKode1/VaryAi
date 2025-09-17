@@ -40,7 +40,7 @@ export async function POST(request: NextRequest) {
     console.log(`🔍 RUNWAYML_API_SECRET preview: ${process.env.RUNWAYML_API_SECRET ? process.env.RUNWAYML_API_SECRET.substring(0, 8) + '...' : 'NOT SET'}`);
 
     const body: RunwayT2IRequest = await request.json();
-    const { prompt, styleReference, model = 'gen4_image', ratio = '1024:1024', seed } = body;
+    const { prompt, styleReference, model = 'gen4_image', ratio, seed } = body;
 
     if (!prompt?.trim()) {
       return NextResponse.json(
