@@ -7753,7 +7753,65 @@ export default function Home() {
                 </div>
               )}
               
-              <div className="generate-floating-buttons">
+              {/* Mobile Generate Buttons - Fixed positioning above bottom */}
+              <div className="md:hidden fixed bottom-4 right-4 z-50 flex flex-col gap-3">
+                {/* Upload Button */}
+                <button
+                  onClick={() => document.getElementById('file-input')?.click()}
+                  className="w-12 h-12 rounded-full bg-green-600 hover:bg-green-500 flex items-center justify-center transition-colors shadow-lg"
+                  title="Upload Image"
+                >
+                  <Upload className="w-5 h-5 text-white" />
+                </button>
+
+                {/* Generate Button */}
+                {uploadedFiles.length === 0 ? (
+                  // Text-to-Image generation
+                  <button
+                    onClick={handleTextToImage}
+                    disabled={processing.isProcessing || !prompt.trim()}
+                    className="w-14 h-14 rounded-full bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-500 hover:to-purple-600 flex items-center justify-center transition-all shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
+                    title="Generate Image"
+                  >
+                    {processing.isProcessing ? (
+                      <Loader2 className="w-6 h-6 text-white animate-spin" />
+                    ) : (
+                      <ArrowRight className="w-6 h-6 text-white" />
+                    )}
+                  </button>
+                ) : hasVideoFiles ? (
+                  // Video generation
+                  <button
+                    onClick={handleRunwayVideoEditing}
+                    disabled={processing.isProcessing || !canGenerateWithCurrentState()}
+                    className="w-14 h-14 rounded-full bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-500 hover:to-purple-600 flex items-center justify-center transition-all shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
+                    title="Generate Video"
+                  >
+                    {processing.isProcessing ? (
+                      <Loader2 className="w-6 h-6 text-white animate-spin" />
+                    ) : (
+                      <ArrowRight className="w-6 h-6 text-white" />
+                    )}
+                  </button>
+                ) : (
+                  // Character variations
+                  <button
+                    onClick={handleModelGeneration}
+                    disabled={processing.isProcessing || !canGenerateWithCurrentState()}
+                    className="w-14 h-14 rounded-full bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-500 hover:to-purple-600 flex items-center justify-center transition-all shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
+                    title="Generate Variation"
+                  >
+                    {processing.isProcessing ? (
+                      <Loader2 className="w-6 h-6 text-white animate-spin" />
+                    ) : (
+                      <ArrowRight className="w-6 h-6 text-white" />
+                    )}
+                  </button>
+                )}
+              </div>
+
+              {/* Desktop Generate Buttons - Keep original positioning */}
+              <div className="hidden md:block generate-floating-buttons">
                 {/* Upload Button */}
                 <button
                   onClick={() => document.getElementById('file-input')?.click()}
@@ -7807,7 +7865,7 @@ export default function Home() {
                     )}
                               </button>
                 )}
-                </div>
+              </div>
                 </div>
               </div>
             </div>
@@ -9057,50 +9115,8 @@ export default function Home() {
         }}
       />
 
-      {/* Mobile Bottom Navigation */}
-      <div className="md:hidden fixed bottom-0 left-0 right-0 z-50 p-4">
-        <div className="flex bg-gray-800 rounded-xl overflow-hidden">
-          <button 
-            onClick={() => {
-              if (pathname === '/generate') {
-                // If already on generate page, close gallery to show generation interface
-                setShowGallery(false);
-              } else {
-                // Navigate to generate page
-                router.push('/generate');
-              }
-            }}
-            className={`flex-1 py-3 flex flex-col items-center gap-1 transition-colors ${pathname === '/generate' ? 'bg-gray-600/80 text-gray-200' : 'text-gray-400 hover:text-white'}`}
-          >
-            <Grid3X3 className="w-5 h-5" />
-            <span className="text-xs font-medium">Home</span>
-          </button>
-          
-          <button 
-            onClick={() => router.push('/community')}
-            className={`flex-1 py-3 flex flex-col items-center gap-1 transition-colors ${pathname === '/community' ? 'bg-gray-600/80 text-gray-200' : 'text-gray-400 hover:text-white'}`}
-          >
-            <MessageCircle className="w-5 h-5" />
-            <span className="text-xs font-medium">Chat</span>
-          </button>
-          
-          <button 
-            onClick={() => setShowGallery(!showGallery)}
-            className={`flex-1 py-3 flex flex-col items-center gap-1 transition-colors ${showGallery ? 'bg-gray-600/80 text-gray-200' : 'text-gray-400 hover:text-white'}`}
-          >
-            <FolderOpen className="w-5 h-5" />
-            <span className="text-xs font-medium">Library</span>
-          </button>
-          
-          <button 
-            onClick={() => router.push('/profile')}
-            className={`flex-1 py-3 flex flex-col items-center gap-1 transition-colors ${pathname === '/profile' ? 'bg-gray-600/80 text-gray-200' : 'text-gray-400 hover:text-white'}`}
-          >
-            <User className="w-5 h-5" />
-            <span className="text-xs font-medium">Profile</span>
-          </button>
-        </div>
-      </div>
+      {/* Mobile Bottom Navigation - REMOVED for cleaner UX */}
+      {/* Navigation is handled by header tabs - no need for redundant footer */}
     </div>
   );
 }
