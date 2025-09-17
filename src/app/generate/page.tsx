@@ -8008,7 +8008,14 @@ export default function Home() {
                     <div className={`transition-all duration-300 ${
                       expandedPrompts.has('mobile-recent') ? 'max-h-[70vh] opacity-100' : 'max-h-0 opacity-0'
                     }`}>
-                      <div className="pt-2 max-h-[70vh] overflow-y-auto overflow-x-hidden scrollbar-thin scrollbar-thumb-gray-600 scrollbar-track-transparent touch-pan-y">
+                      <div 
+                        className="pt-2 max-h-[70vh] overflow-y-auto overflow-x-hidden scrollbar-thin scrollbar-thumb-gray-600 scrollbar-track-transparent touch-pan-y"
+                        style={{
+                          scrollbarWidth: 'thin',
+                          scrollbarColor: '#4B5563 transparent',
+                          WebkitOverflowScrolling: 'touch'
+                        }}
+                      >
                         <div className="grid grid-cols-3 gap-2">
                           {filteredGallery.map((item: any, index: number) => {
                             const itemKey = `mobile-recent-${item.id}-${item.timestamp}-${index}`;
@@ -8103,7 +8110,14 @@ export default function Home() {
                     <div className={`transition-all duration-300 ${
                       expandedPrompts.has('mobile-videos') ? 'max-h-[70vh] opacity-100' : 'max-h-0 opacity-0'
                     }`}>
-                      <div className="pt-2 max-h-[70vh] overflow-y-auto overflow-x-hidden scrollbar-thin scrollbar-thumb-gray-600 scrollbar-track-transparent touch-pan-y">
+                      <div 
+                        className="pt-2 max-h-[70vh] overflow-y-auto overflow-x-hidden scrollbar-thin scrollbar-thumb-gray-600 scrollbar-track-transparent touch-pan-y"
+                        style={{
+                          scrollbarWidth: 'thin',
+                          scrollbarColor: '#4B5563 transparent',
+                          WebkitOverflowScrolling: 'touch'
+                        }}
+                      >
                         <div className="grid grid-cols-2 gap-2">
                           {filteredGallery.filter(item => item.fileType === 'video').map((item: any, index: number) => {
                             const itemKey = `mobile-video-${item.id}-${item.timestamp}-${index}`;
@@ -8186,7 +8200,14 @@ export default function Home() {
                     <div className={`transition-all duration-300 ${
                       expandedPrompts.has('mobile-images') ? 'max-h-[70vh] opacity-100' : 'max-h-0 opacity-0'
                     }`}>
-                      <div className="pt-2 max-h-[70vh] overflow-y-auto overflow-x-hidden scrollbar-thin scrollbar-thumb-gray-600 scrollbar-track-transparent touch-pan-y">
+                      <div 
+                        className="pt-2 max-h-[70vh] overflow-y-auto overflow-x-hidden scrollbar-thin scrollbar-thumb-gray-600 scrollbar-track-transparent touch-pan-y"
+                        style={{
+                          scrollbarWidth: 'thin',
+                          scrollbarColor: '#4B5563 transparent',
+                          WebkitOverflowScrolling: 'touch'
+                        }}
+                      >
                         <div className="grid grid-cols-4 gap-2">
                           {filteredGallery.filter(item => item.fileType === 'image').map((item: any, index: number) => {
                             const itemKey = `mobile-image-${item.id}-${item.timestamp}-${index}`;
@@ -8293,7 +8314,14 @@ export default function Home() {
                         expandedPrompts.has('recent') ? 'max-h-[600px] opacity-100' : 'max-h-0 opacity-0'
                       }`}>
                         <div className="pt-3">
-                          <div className="max-h-[500px] overflow-y-auto scrollbar-thin scrollbar-thumb-gray-600 scrollbar-track-gray-800">
+                          <div 
+                            className="max-h-[500px] overflow-y-auto scrollbar-thin scrollbar-thumb-gray-600 scrollbar-track-gray-800"
+                            style={{
+                              scrollbarWidth: 'thin',
+                              scrollbarColor: '#4B5563 #1F2937',
+                              WebkitOverflowScrolling: 'touch'
+                            }}
+                          >
                             <div className="grid grid-cols-4 gap-3">
                               {filteredGallery.map((item: any, index: number) => {
                               const itemKey = `recent-${item.id}-${item.timestamp}-${index}`;
@@ -8458,7 +8486,15 @@ export default function Home() {
                         expandedPrompts.has('videos') ? 'max-h-[500px] opacity-100' : 'max-h-0 opacity-0'
                       }`}>
                         <div className="pt-3">
-                          <div className="grid grid-cols-5 gap-3">
+                          <div 
+                            className="max-h-[450px] overflow-y-auto scrollbar-thin scrollbar-thumb-gray-600 scrollbar-track-gray-800"
+                            style={{
+                              scrollbarWidth: 'thin',
+                              scrollbarColor: '#4B5563 #1F2937',
+                              WebkitOverflowScrolling: 'touch'
+                            }}
+                          >
+                            <div className="grid grid-cols-5 gap-3">
                             {filteredGallery.filter(item => item.fileType === 'video').map((item: any, index: number) => {
                               const itemKey = `video-${item.id}-${item.timestamp}-${index}`;
                               
@@ -8550,6 +8586,7 @@ export default function Home() {
                                 </div>
                               );
                             })}
+                            </div>
                           </div>
                         </div>
                       </div>
@@ -8589,7 +8626,15 @@ export default function Home() {
                         expandedPrompts.has('images') ? 'max-h-[500px] opacity-100' : 'max-h-0 opacity-0'
                       }`}>
                         <div className="pt-3">
-                          <div className="grid grid-cols-6 gap-3">
+                          <div 
+                            className="max-h-[450px] overflow-y-auto scrollbar-thin scrollbar-thumb-gray-600 scrollbar-track-gray-800"
+                            style={{
+                              scrollbarWidth: 'thin',
+                              scrollbarColor: '#4B5563 #1F2937',
+                              WebkitOverflowScrolling: 'touch'
+                            }}
+                          >
+                            <div className="grid grid-cols-6 gap-3">
                             {filteredGallery.filter(item => item.fileType === 'image').map((item: any, index: number) => {
                               const itemKey = `image-${item.id}-${item.timestamp}-${index}`;
                               
@@ -8692,6 +8737,7 @@ export default function Home() {
                                 </div>
                               );
                             })}
+                            </div>
                           </div>
                         </div>
                       </div>
