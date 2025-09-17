@@ -1050,30 +1050,38 @@ RESPECT THE USER'S CREATIVE VISION - do not standardize or genericize their spec
               console.log(`🔄 [ASPECT RATIO REFRAME] Target aspect ratio: ${generationSettings.aspectRatio}`);
               
               try {
-                const reframeResult = await fal.subscribe('fal-ai/image-editing/reframe', {
-                  input: {
-                    image_url: finalImageUrl,
-                    aspect_ratio: generationSettings.aspectRatio,
-                    output_format: generationSettings?.outputFormat || 'jpeg',
-                    guidance_scale: 3.5,
-                    num_inference_steps: 30,
-                    safety_tolerance: '2',
-                    sync_mode: false
-                  },
-                  logs: true,
-                  onQueueUpdate: (update) => {
-                    if (update.status === "IN_PROGRESS") {
-                      console.log(`📊 [REFRAME] Progress:`, update.logs?.map(log => log.message).join(', '));
-                    }
-                  },
-                });
+                // Validate aspect ratio is supported by reframe model
+                const supportedAspectRatios = ['21:9', '16:9', '4:3', '3:2', '1:1', '2:3', '3:4', '9:16', '9:21'] as const;
+                const aspectRatio = generationSettings.aspectRatio as typeof supportedAspectRatios[number];
                 
-                if (reframeResult.data?.images?.[0]?.url) {
-                  finalImageUrl = reframeResult.data.images[0].url;
-                  console.log(`✅ [ASPECT RATIO REFRAME] Successfully reframed to ${generationSettings.aspectRatio}`);
-                  console.log(`✅ [ASPECT RATIO REFRAME] Final image: ${finalImageUrl}`);
+                if (!supportedAspectRatios.includes(aspectRatio)) {
+                  console.log(`⚠️ [ASPECT RATIO REFRAME] Unsupported aspect ratio: ${generationSettings.aspectRatio}, skipping reframe`);
                 } else {
-                  console.log(`⚠️ [ASPECT RATIO REFRAME] Reframe failed, using original image`);
+                  const reframeResult = await fal.subscribe('fal-ai/image-editing/reframe', {
+                    input: {
+                      image_url: finalImageUrl,
+                      aspect_ratio: aspectRatio,
+                      output_format: (generationSettings?.outputFormat === 'png' ? 'png' : 'jpeg') as 'jpeg' | 'png',
+                      guidance_scale: 3.5,
+                      num_inference_steps: 30,
+                      safety_tolerance: '2',
+                      sync_mode: false
+                    },
+                    logs: true,
+                    onQueueUpdate: (update) => {
+                      if (update.status === "IN_PROGRESS") {
+                        console.log(`📊 [REFRAME] Progress:`, update.logs?.map(log => log.message).join(', '));
+                      }
+                    },
+                  });
+                  
+                  if (reframeResult.data?.images?.[0]?.url) {
+                    finalImageUrl = reframeResult.data.images[0].url;
+                    console.log(`✅ [ASPECT RATIO REFRAME] Successfully reframed to ${generationSettings.aspectRatio}`);
+                    console.log(`✅ [ASPECT RATIO REFRAME] Final image: ${finalImageUrl}`);
+                  } else {
+                    console.log(`⚠️ [ASPECT RATIO REFRAME] Reframe failed, using original image`);
+                  }
                 }
               } catch (reframeError) {
                 console.error(`❌ [ASPECT RATIO REFRAME] Error:`, reframeError);
