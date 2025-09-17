@@ -6742,108 +6742,153 @@ export default function Home() {
 
             {/* Processing items now appear in gallery instead of modal */}
 
-            {/* Mobile Floating Input - Match Community Page Style */}
+            {/* Mobile Floating Input - Progressive Disclosure Interface */}
             <div className="mobile-chat-interface lg:hidden" data-input-area>
-
               
-              <div className="mobile-input-container">
-                {/* Top Div: 4 Image Upload Slots + Model Selection */}
-                <div className="mb-2">
-                  <div className="flex gap-2 items-center overflow-x-auto pt-3">
-                    {/* 4 Image Upload Slots - Mobile */}
-                    <div className="flex gap-2 flex-shrink-0 pb-3">
-                      {/* Filled slots */}
-                    {uploadedFiles.map((file, index) => (
-                      <div 
-                        key={index} 
-                        className="relative flex-shrink-0 transition-all duration-200"
-                        style={{ paddingBottom: '0.5px' }}
+              {/* Initial State: Only Upload Button */}
+              {uploadedFiles.length === 0 && (
+                <div className="mobile-input-container">
+                  <div className="flex items-center justify-center">
+                    {/* Single Upload Button - Clean Interface */}
+                    <button
+                      onClick={() => document.getElementById('file-input')?.click()}
+                      className="w-16 h-16 rounded-full bg-green-600 hover:bg-green-500 flex items-center justify-center transition-all shadow-lg hover:shadow-xl"
+                      title="Upload Image to Start"
+                    >
+                      <Upload className="w-8 h-8 text-white" />
+                    </button>
+                  </div>
+                  
+                  {/* Optional: Text Input for Text-to-Image (hidden by default) */}
+                  <div className="mt-3 opacity-0 pointer-events-none transition-all duration-300">
+                    <textarea
+                      id="prompt-mobile-initial"
+                      value={prompt}
+                      onChange={(e) => setPrompt(e.target.value)}
+                      placeholder="Describe what you want to generate..."
+                      className="mobile-chat-input w-full bg-gray-800/50 border border-gray-600 rounded-lg px-3 py-2 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
+                      rows={2}
+                      style={{ fontSize: '16px', minHeight: '44px' }}
+                    />
+                    
+                    {/* Generate Button for Text-to-Image */}
+                    <div className="mt-2 flex justify-center">
+                      <button
+                        onClick={handleTextToImage}
+                        disabled={processing.isProcessing || !prompt.trim()}
+                        className="mobile-send-button"
+                        title="Generate Image"
                       >
-                          {file.fileType === 'image' ? (
-                        <img
-                          src={file.preview}
-                          alt={`Image ${index + 1}`}
-                              className="w-12 h-12 object-cover rounded-lg border border-white border-opacity-20"
-                            />
-                          ) : (
-                            <video
-                              src={file.preview}
-                              className="w-12 h-12 object-cover rounded-lg border border-white border-opacity-20"
-                              muted
-                              playsInline
-                              preload="metadata"
-                              onMouseEnter={(e) => {
-                                console.log('🎬 Upload preview video hover start:', file.preview);
-                                e.currentTarget.play().catch(err => {
-                                  console.warn('⚠️ Upload preview video autoplay failed:', err);
-                                });
-                              }}
-                              onMouseLeave={(e) => {
-                                console.log('🎬 Upload preview video hover end:', file.preview);
-                                e.currentTarget.pause();
-                                e.currentTarget.currentTime = 0;
-                              }}
-                            />
-                          )}
-                        <button
-                          onClick={() => setUploadedFiles(prev => prev.filter((_, i) => i !== index))}
-                          className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 text-white rounded-full flex items-center justify-center text-xs hover:bg-red-600 transition-colors"
-                          title="Remove image"
-                        >
-                          <X className="w-1.5 h-1.5" />
-                        </button>
-                          <div className="absolute bottom-0 left-0 bg-black bg-opacity-50 text-white text-xs px-1 py-0.5 rounded-tr">
-                            {file.fileType.toUpperCase()}
+                        {processing.isProcessing ? (
+                          <Loader2 className="mobile-send-icon animate-spin" />
+                        ) : (
+                          <Send className="mobile-send-icon" />
+                        )}
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Expanded State: Full Interface After Image Upload */}
+              {uploadedFiles.length > 0 && (
+                <div className="mobile-input-container">
+                  {/* Top Div: 4 Image Upload Slots + Model Selection */}
+                  <div className="mb-2">
+                    <div className="flex gap-2 items-center overflow-x-auto pt-3">
+                      {/* 4 Image Upload Slots - Mobile */}
+                      <div className="flex gap-2 flex-shrink-0 pb-3">
+                        {/* Filled slots */}
+                        {uploadedFiles.map((file, index) => (
+                          <div 
+                            key={index} 
+                            className="relative flex-shrink-0 transition-all duration-200"
+                            style={{ paddingBottom: '0.5px' }}
+                          >
+                            {file.fileType === 'image' ? (
+                              <img
+                                src={file.preview}
+                                alt={`Image ${index + 1}`}
+                                className="w-12 h-12 object-cover rounded-lg border border-white border-opacity-20"
+                              />
+                            ) : (
+                              <video
+                                src={file.preview}
+                                className="w-12 h-12 object-cover rounded-lg border border-white border-opacity-20"
+                                muted
+                                playsInline
+                                preload="metadata"
+                                onMouseEnter={(e) => {
+                                  console.log('🎬 Upload preview video hover start:', file.preview);
+                                  e.currentTarget.play().catch(err => {
+                                    console.warn('⚠️ Upload preview video autoplay failed:', err);
+                                  });
+                                }}
+                                onMouseLeave={(e) => {
+                                  console.log('🎬 Upload preview video hover end:', file.preview);
+                                  e.currentTarget.pause();
+                                  e.currentTarget.currentTime = 0;
+                                }}
+                              />
+                            )}
+                            <button
+                              onClick={() => setUploadedFiles(prev => prev.filter((_, i) => i !== index))}
+                              className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 text-white rounded-full flex items-center justify-center text-xs hover:bg-red-600 transition-colors"
+                              title="Remove image"
+                            >
+                              <X className="w-1.5 h-1.5" />
+                            </button>
+                            <div className="absolute bottom-0 left-0 bg-black bg-opacity-50 text-white text-xs px-1 py-0.5 rounded-tr">
+                              {file.fileType.toUpperCase()}
+                            </div>
                           </div>
-                      </div>
-                    ))}
-                      
-                      {/* Empty slots for upload */}
-                      {Array.from({ length: 4 - uploadedFiles.length }, (_, index) => {
-                        const slotIndex = uploadedFiles.length + index;
-                        return (
-                          <div
-                            key={`empty-${slotIndex}`}
-                            className="border-2 border-dashed border-white border-opacity-30 rounded-lg w-14 h-14 flex items-center justify-center cursor-pointer hover:border-opacity-50 transition-all duration-200 flex-shrink-0 touch-manipulation"
-                            style={{ paddingBottom: '0.5px', minWidth: '56px', minHeight: '56px' }}
-                            onClick={(e) => {
-                              e.preventDefault();
-                              e.stopPropagation();
-                              console.log('📱 Mobile image slot clicked, slot:', slotIndex);
-                              const fileInput = document.getElementById('file-input');
-                              if (fileInput) {
-                                fileInput.click();
-                              } else {
-                                console.error('❌ File input not found');
-                              }
-                            }}
-                            onTouchStart={(e) => {
-                              e.preventDefault();
-                              e.stopPropagation();
-                            }}
-                            onKeyDown={(e) => {
-                              if (e.key === 'Enter' || e.key === ' ') {
+                        ))}
+                        
+                        {/* Empty slots for upload */}
+                        {Array.from({ length: 4 - uploadedFiles.length }, (_, index) => {
+                          const slotIndex = uploadedFiles.length + index;
+                          return (
+                            <div
+                              key={`empty-${slotIndex}`}
+                              className="border-2 border-dashed border-white border-opacity-30 rounded-lg w-14 h-14 flex items-center justify-center cursor-pointer hover:border-opacity-50 transition-all duration-200 flex-shrink-0 touch-manipulation"
+                              style={{ paddingBottom: '0.5px', minWidth: '56px', minHeight: '56px' }}
+                              onClick={(e) => {
                                 e.preventDefault();
                                 e.stopPropagation();
-                                console.log('📱 Mobile image slot key pressed, slot:', slotIndex);
+                                console.log('📱 Mobile image slot clicked, slot:', slotIndex);
                                 const fileInput = document.getElementById('file-input');
                                 if (fileInput) {
                                   fileInput.click();
+                                } else {
+                                  console.error('❌ File input not found');
                                 }
-                              }
-                            }}
-                            tabIndex={0}
-                            role="button"
-                            aria-label={`Upload image to slot ${slotIndex + 1}`}
-                          >
-                            <Plus className="w-5 h-5 text-gray-400" />
-                  </div>
-                        );
-                      })}
-                    </div>
-                    
-                    {/* Model Selection - Inline with image slots - SIMPLIFIED */}
-                    {uploadedFiles.length > 0 && (
+                              }}
+                              onTouchStart={(e) => {
+                                e.preventDefault();
+                                e.stopPropagation();
+                              }}
+                              onKeyDown={(e) => {
+                                if (e.key === 'Enter' || e.key === ' ') {
+                                  e.preventDefault();
+                                  e.stopPropagation();
+                                  console.log('📱 Mobile image slot key pressed, slot:', slotIndex);
+                                  const fileInput = document.getElementById('file-input');
+                                  if (fileInput) {
+                                    fileInput.click();
+                                  }
+                                }
+                              }}
+                              tabIndex={0}
+                              role="button"
+                              aria-label={`Upload image to slot ${slotIndex + 1}`}
+                            >
+                              <Plus className="w-5 h-5 text-gray-400" />
+                            </div>
+                          );
+                        })}
+                      </div>
+                      
+                      {/* Model Selection - Inline with image slots */}
                       <select
                         value={generationMode || ''}
                         onChange={(e) => {
@@ -6870,90 +6915,76 @@ export default function Home() {
                           </>
                         )}
                       </select>
+                    </div>
+                    
+                    {/* Text Input - Directly below the top container */}
+                    <div className="mt-2">
+                      <textarea
+                        id="prompt-mobile"
+                        value={prompt}
+                        onChange={(e) => setPrompt(e.target.value)}
+                        placeholder={getPromptPlaceholder()}
+                        className="mobile-chat-input w-full bg-gray-800/50 border border-gray-600 rounded-lg px-3 py-2 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
+                        rows={2}
+                        style={{ fontSize: '16px', minHeight: '44px' }}
+                      />
+                    </div>
+                    
+                    {/* Token Warning Message */}
+                    {showTokenWarning && (
+                      <div className="mt-2 px-3 py-2 bg-yellow-900/30 border border-yellow-500/50 rounded-lg">
+                        <div className="text-yellow-200 text-xs flex items-center gap-2">
+                          <span className="text-yellow-400">⚠️</span>
+                          <span>Better adherence with fewer presets (3+ may reduce quality)</span>
+                        </div>
+                      </div>
                     )}
                   </div>
                   
-                  {/* Text Input - Directly below the top container */}
-                <div className="mt-2">
-                <textarea
-                  id="prompt-mobile"
-                  value={prompt}
-                  onChange={(e) => setPrompt(e.target.value)}
-                  placeholder={getPromptPlaceholder()}
-                    className="mobile-chat-input w-full bg-gray-800/50 border border-gray-600 rounded-lg px-3 py-2 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
-                    rows={2}
-                    style={{ fontSize: '16px', minHeight: '44px' }}
-                  />
-                </div>
-                
-                {/* Token Warning Message */}
-                {showTokenWarning && (
-                  <div className="mt-2 px-3 py-2 bg-yellow-900/30 border border-yellow-500/50 rounded-lg">
-                    <div className="text-yellow-200 text-xs flex items-center gap-2">
-                      <span className="text-yellow-400">⚠️</span>
-                      <span>Better adherence with fewer presets (3+ may reduce quality)</span>
-                    </div>
+                  {/* Bottom Container: Action Buttons */}
+                  <div className="flex items-center justify-center gap-2">
+                    {/* Upload Button */}
+                    <button
+                      onClick={() => document.getElementById('file-input')?.click()}
+                      className="w-8 h-8 rounded-full bg-green-600 hover:bg-green-500 flex items-center justify-center transition-colors"
+                      title="Upload images"
+                    >
+                      <Upload className="w-4 h-4 text-white" />
+                    </button>
+                    
+                    {/* Generate Button */}
+                    {hasVideoFiles ? (
+                      // Video generation
+                      <button
+                        onClick={handleRunwayVideoEditing}
+                        disabled={processing.isProcessing || !canGenerateWithCurrentState()}
+                        className="mobile-send-button"
+                        title="Generate Video"
+                      >
+                        {processing.isProcessing ? (
+                          <Loader2 className="mobile-send-icon animate-spin" />
+                        ) : (
+                          <Send className="mobile-send-icon" />
+                        )}
+                      </button>
+                    ) : (
+                      // Character variations
+                      <button
+                        onClick={handleModelGeneration}
+                        disabled={processing.isProcessing || !canGenerateWithCurrentState()}
+                        className="mobile-send-button"
+                        title="Generate Variation"
+                      >
+                        {processing.isProcessing ? (
+                          <Loader2 className="mobile-send-icon animate-spin" />
+                        ) : (
+                          <Send className="mobile-send-icon" />
+                        )}
+                      </button>
+                    )}
                   </div>
-                )}
                 </div>
-                
-                {/* Bottom Container: Action Buttons */}
-                <div className="flex items-center justify-center gap-2">
-                  {/* Upload Button */}
-                  <button
-                    onClick={() => document.getElementById('file-input')?.click()}
-                    className="w-8 h-8 rounded-full bg-green-600 hover:bg-green-500 flex items-center justify-center transition-colors"
-                    title="Upload images"
-                  >
-                    <Upload className="w-4 h-4 text-white" />
-                  </button>
-                  
-                  {/* Generate Button */}
-                  {uploadedFiles.length === 0 ? (
-                    // Text-to-Image generation
-                    <button
-                      onClick={handleTextToImage}
-                      disabled={processing.isProcessing || !prompt.trim()}
-                      className="mobile-send-button"
-                      title="Generate Image"
-                    >
-                      {processing.isProcessing ? (
-                        <Loader2 className="mobile-send-icon animate-spin" />
-                      ) : (
-                        <Send className="mobile-send-icon" />
-                      )}
-                    </button>
-                  ) : hasVideoFiles ? (
-                    // Video generation
-                    <button
-                      onClick={handleRunwayVideoEditing}
-                      disabled={processing.isProcessing || !canGenerateWithCurrentState()}
-                      className="mobile-send-button"
-                      title="Generate Video"
-                    >
-                      {processing.isProcessing ? (
-                        <Loader2 className="mobile-send-icon animate-spin" />
-                      ) : (
-                        <Send className="mobile-send-icon" />
-                      )}
-                    </button>
-                  ) : (
-                    // Character variations
-                    <button
-                      onClick={handleModelGeneration}
-                      disabled={processing.isProcessing || !canGenerateWithCurrentState()}
-                      className="mobile-send-button"
-                      title="Generate Variation"
-                    >
-                      {processing.isProcessing ? (
-                        <Loader2 className="mobile-send-icon animate-spin" />
-                      ) : (
-                        <Send className="mobile-send-icon" />
-                      )}
-                    </button>
-                  )}
-                </div>
-              </div>
+              )}
             </div>
 
             {/* Desktop Generation Panel */}
@@ -7754,61 +7785,50 @@ export default function Home() {
               )}
               
               {/* Mobile Generate Buttons - Fixed positioning above bottom */}
-              <div className="md:hidden fixed bottom-4 right-4 z-50 flex flex-col gap-3">
-                {/* Upload Button */}
-                <button
-                  onClick={() => document.getElementById('file-input')?.click()}
-                  className="w-12 h-12 rounded-full bg-green-600 hover:bg-green-500 flex items-center justify-center transition-colors shadow-lg"
-                  title="Upload Image"
-                >
-                  <Upload className="w-5 h-5 text-white" />
-                </button>
+              {/* Mobile Floating Buttons - Only show when needed */}
+              {uploadedFiles.length > 0 && (
+                <div className="md:hidden fixed bottom-4 right-4 z-50 flex flex-col gap-3">
+                  {/* Upload Button */}
+                  <button
+                    onClick={() => document.getElementById('file-input')?.click()}
+                    className="w-12 h-12 rounded-full bg-green-600 hover:bg-green-500 flex items-center justify-center transition-colors shadow-lg"
+                    title="Upload Image"
+                  >
+                    <Upload className="w-5 h-5 text-white" />
+                  </button>
 
-                {/* Generate Button */}
-                {uploadedFiles.length === 0 ? (
-                  // Text-to-Image generation
-                  <button
-                    onClick={handleTextToImage}
-                    disabled={processing.isProcessing || !prompt.trim()}
-                    className="w-14 h-14 rounded-full bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-500 hover:to-purple-600 flex items-center justify-center transition-all shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
-                    title="Generate Image"
-                  >
-                    {processing.isProcessing ? (
-                      <Loader2 className="w-6 h-6 text-white animate-spin" />
-                    ) : (
-                      <ArrowRight className="w-6 h-6 text-white" />
-                    )}
-                  </button>
-                ) : hasVideoFiles ? (
-                  // Video generation
-                  <button
-                    onClick={handleRunwayVideoEditing}
-                    disabled={processing.isProcessing || !canGenerateWithCurrentState()}
-                    className="w-14 h-14 rounded-full bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-500 hover:to-purple-600 flex items-center justify-center transition-all shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
-                    title="Generate Video"
-                  >
-                    {processing.isProcessing ? (
-                      <Loader2 className="w-6 h-6 text-white animate-spin" />
-                    ) : (
-                      <ArrowRight className="w-6 h-6 text-white" />
-                    )}
-                  </button>
-                ) : (
-                  // Character variations
-                  <button
-                    onClick={handleModelGeneration}
-                    disabled={processing.isProcessing || !canGenerateWithCurrentState()}
-                    className="w-14 h-14 rounded-full bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-500 hover:to-purple-600 flex items-center justify-center transition-all shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
-                    title="Generate Variation"
-                  >
-                    {processing.isProcessing ? (
-                      <Loader2 className="w-6 h-6 text-white animate-spin" />
-                    ) : (
-                      <ArrowRight className="w-6 h-6 text-white" />
-                    )}
-                  </button>
-                )}
-              </div>
+                  {/* Generate Button */}
+                  {hasVideoFiles ? (
+                    // Video generation
+                    <button
+                      onClick={handleRunwayVideoEditing}
+                      disabled={processing.isProcessing || !canGenerateWithCurrentState()}
+                      className="w-14 h-14 rounded-full bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-500 hover:to-purple-600 flex items-center justify-center transition-all shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
+                      title="Generate Video"
+                    >
+                      {processing.isProcessing ? (
+                        <Loader2 className="w-6 h-6 text-white animate-spin" />
+                      ) : (
+                        <ArrowRight className="w-6 h-6 text-white" />
+                      )}
+                    </button>
+                  ) : (
+                    // Character variations
+                    <button
+                      onClick={handleModelGeneration}
+                      disabled={processing.isProcessing || !canGenerateWithCurrentState()}
+                      className="w-14 h-14 rounded-full bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-500 hover:to-purple-600 flex items-center justify-center transition-all shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
+                      title="Generate Variation"
+                    >
+                      {processing.isProcessing ? (
+                        <Loader2 className="w-6 h-6 text-white animate-spin" />
+                      ) : (
+                        <ArrowRight className="w-6 h-6 text-white" />
+                      )}
+                    </button>
+                  )}
+                </div>
+              )}
 
               {/* Desktop Generate Buttons - Keep original positioning */}
               <div className="hidden md:block generate-floating-buttons">
