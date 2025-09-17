@@ -87,12 +87,15 @@ export class CreditService {
       // First, try user_credits table
       const { data: creditData, error: creditError } = await supabaseAdmin
         .from('user_credits')
-        .select('balance')
+        .select('available_credits')
         .eq('user_id', userId)
+        .eq('is_active', true)
+        .order('created_at', { ascending: false })
+        .limit(1)
         .single();
 
       if (creditData && !creditError) {
-        availableCredits = Number(creditData.balance);
+        availableCredits = Number(creditData.available_credits);
       } else {
         // If not found in user_credits, check users.credit_balance
         const { data: userData, error: userError } = await supabaseAdmin
@@ -212,12 +215,15 @@ export class CreditService {
       
       const { data: creditData } = await supabaseAdmin
         .from('user_credits')
-        .select('balance')
+        .select('available_credits')
         .eq('user_id', userId)
+        .eq('is_active', true)
+        .order('created_at', { ascending: false })
+        .limit(1)
         .single();
 
       if (creditData) {
-        remainingCredits = Number(creditData.balance);
+        remainingCredits = Number(creditData.available_credits);
       } else {
         // Check users.credit_balance as fallback
         const { data: userData } = await supabaseAdmin
