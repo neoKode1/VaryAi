@@ -6587,65 +6587,122 @@ export default function Home() {
             <div className="lg:hidden w-full max-w-4xl mx-auto mb-8">
               <h2 className="text-lg font-bold text-white mb-4 text-center">New Variations</h2>
               
-              {/* Main Content Display Area */}
-              <div className="w-full aspect-square max-w-md mx-auto bg-black bg-opacity-50 rounded-[30px] border border-gray-700 overflow-hidden">
-                {variations.length > 0 ? (
-                  <div className="relative w-full h-full">
-                    {variations[0].fileType === 'video' ? (
-                      <video
-                        src={variations[0].videoUrl}
-                        className="w-full h-full object-cover cursor-pointer"
-                        controls
-                        muted
-                        loop
-                        playsInline
-                        preload="metadata"
-                        onClick={() => setFullScreenImage(variations[0].videoUrl || null)}
-                        onMouseEnter={(e) => {
-                          console.log('🎬 Main variation video hover start:', variations[0].videoUrl);
-                          e.currentTarget.play().catch(err => {
-                            console.warn('⚠️ Main variation video autoplay failed:', err);
-                          });
-                        }}
-                        onMouseLeave={(e) => {
-                          console.log('🎬 Main variation video hover end:', variations[0].videoUrl);
-                          e.currentTarget.pause();
-                          e.currentTarget.currentTime = 0;
-                        }}
-                      />
-                    ) : (
-                      <img
-                        src={variations[0].imageUrl}
-                        alt={variations[0].description}
-                        className="w-full h-full object-cover"
-                        onClick={() => setFullScreenImage(variations[0].imageUrl || null)}
-                        onError={(e) => {
-                          console.error('Mobile image failed to load:', variations[0].imageUrl);
-                          e.currentTarget.src = '/api/placeholder/400/400';
-                        }}
-                        loading="lazy"
-                      />
-                    )}
-                    
-                    {/* Content Info Overlay */}
-                    <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black to-transparent p-4">
-                      <div className="text-white text-sm font-medium">
-                        {variations[0].angle} - {variations[0].pose}
-                      </div>
-                      <div className="text-gray-300 text-xs">
-                        {variations[0].description}
+              {/* Horizontal Scrolling Variations */}
+              {variations.length > 0 ? (
+                <div className="relative">
+                  {/* Main Display Area */}
+                  <div className="w-full aspect-square max-w-md mx-auto bg-black bg-opacity-50 rounded-[30px] border border-gray-700 overflow-hidden">
+                    <div className="relative w-full h-full">
+                      {variations[currentImageIndex]?.fileType === 'video' ? (
+                        <video
+                          src={variations[currentImageIndex].videoUrl}
+                          className="w-full h-full object-cover cursor-pointer"
+                          controls
+                          muted
+                          loop
+                          playsInline
+                          preload="metadata"
+                          onClick={() => setFullScreenImage(variations[currentImageIndex].videoUrl || null)}
+                          onMouseEnter={(e) => {
+                            console.log('🎬 Main variation video hover start:', variations[currentImageIndex].videoUrl);
+                            e.currentTarget.play().catch(err => {
+                              console.warn('⚠️ Main variation video autoplay failed:', err);
+                            });
+                          }}
+                          onMouseLeave={(e) => {
+                            console.log('🎬 Main variation video hover end:', variations[currentImageIndex].videoUrl);
+                            e.currentTarget.pause();
+                            e.currentTarget.currentTime = 0;
+                          }}
+                        />
+                      ) : (
+                        <img
+                          src={variations[currentImageIndex]?.imageUrl}
+                          alt={variations[currentImageIndex]?.description}
+                          className="w-full h-full object-cover"
+                          onClick={() => setFullScreenImage(variations[currentImageIndex]?.imageUrl || null)}
+                          onError={(e) => {
+                            console.error('Mobile image failed to load:', variations[currentImageIndex]?.imageUrl);
+                            e.currentTarget.src = '/api/placeholder/400/400';
+                          }}
+                          loading="lazy"
+                        />
+                      )}
+                      
+                      {/* Content Info Overlay */}
+                      <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black to-transparent p-4">
+                        <div className="text-white text-sm font-medium">
+                          {variations[currentImageIndex]?.angle} - {variations[currentImageIndex]?.pose}
+                        </div>
+                        <div className="text-gray-300 text-xs">
+                          {variations[currentImageIndex]?.description}
+                        </div>
                       </div>
                     </div>
                   </div>
-                ) : (
+                  
+                  {/* Navigation Arrows */}
+                  {variations.length > 1 && (
+                    <>
+                      {/* Left Arrow */}
+                      <button
+                        onClick={() => setCurrentImageIndex(prev => prev > 0 ? prev - 1 : variations.length - 1)}
+                        className="absolute left-2 top-1/2 transform -translate-y-1/2 w-10 h-10 bg-black bg-opacity-60 hover:bg-opacity-80 rounded-full flex items-center justify-center text-white transition-all duration-200 z-10"
+                        disabled={processing.isProcessing}
+                      >
+                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                        </svg>
+                      </button>
+                      
+                      {/* Right Arrow */}
+                      <button
+                        onClick={() => setCurrentImageIndex(prev => prev < variations.length - 1 ? prev + 1 : 0)}
+                        className="absolute right-2 top-1/2 transform -translate-y-1/2 w-10 h-10 bg-black bg-opacity-60 hover:bg-opacity-80 rounded-full flex items-center justify-center text-white transition-all duration-200 z-10"
+                        disabled={processing.isProcessing}
+                      >
+                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                        </svg>
+                      </button>
+                    </>
+                  )}
+                  
+                  {/* Dot Indicators */}
+                  {variations.length > 1 && (
+                    <div className="flex justify-center mt-4 space-x-2">
+                      {variations.map((_, index) => (
+                        <button
+                          key={index}
+                          onClick={() => setCurrentImageIndex(index)}
+                          className={`w-2 h-2 rounded-full transition-all duration-200 ${
+                            index === currentImageIndex 
+                              ? 'bg-white' 
+                              : 'bg-gray-500 hover:bg-gray-300'
+                          }`}
+                          disabled={processing.isProcessing}
+                        />
+                      ))}
+                    </div>
+                  )}
+                  
+                  {/* Variation Counter */}
+                  {variations.length > 1 && (
+                    <div className="text-center mt-2 text-sm text-gray-400">
+                      {currentImageIndex + 1} of {variations.length}
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <div className="w-full aspect-square max-w-md mx-auto bg-black bg-opacity-50 rounded-[30px] border border-gray-700 overflow-hidden">
                   <div className="flex items-center justify-center h-full text-gray-400">
                     <div className="text-center">
                       <div className="text-4xl mb-2">🎨</div>
                       <div className="text-sm">Your generated content will appear here</div>
                     </div>
                   </div>
-                )}
-              </div>
+                </div>
+              )}
               
               {/* Mobile Quick Shots and Generate Buttons */}
               <div className="mt-6 space-y-3">
