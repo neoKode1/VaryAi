@@ -348,7 +348,7 @@ export default function PricingPage() {
               </CardHeader>
               <CardContent>
                 <p className="text-gray-300">
-                  You can purchase additional credits or upgrade your plan. We'll notify you when you're approaching your limit.
+                  You can purchase additional credits or upgrade your plan. We&apos;ll notify you when you&apos;re approaching your limit.
                 </p>
               </CardContent>
             </Card>

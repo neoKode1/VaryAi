@@ -130,7 +130,7 @@ export default function DashboardPage() {
             Welcome back, {userStats?.tier === 'admin' ? 'Admin' : user.email?.split('@')[0]}!
           </h1>
           <p className="text-gray-300">
-            Here's what's happening with your VaryAI account.
+            Here&apos;s what&apos;s happening with your VaryAI account.
           </p>
         </div>
 
@@ -293,7 +293,7 @@ export default function DashboardPage() {
                 <div className="text-center py-8">
                   <BarChart3 className="h-12 w-12 text-white mx-auto mb-4 opacity-50" />
                   <p className="text-white mb-4">
-                    You've created {userStats?.totalGenerations || 0} pieces of content
+                    You&apos;ve created {userStats?.totalGenerations || 0} pieces of content
                   </p>
                   <Button asChild>
                     <Link href="/generate">Create More Content</Link>
