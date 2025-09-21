@@ -122,9 +122,13 @@ export default function PricingPage() {
 
     try {
       const stripeService = createStripeService()
+      // Map tier names to match Stripe service expectations
+      const mappedTier = tier === 'weeklyPro' ? 'weekly_pro' : 
+                        tier === 'monthlyPro' ? 'monthly_pro' : tier
+      
       const { url } = await stripeService.createCheckoutSession({
         userId: user.id,
-        tier,
+        tier: mappedTier as 'light' | 'heavy' | 'weekly_pro' | 'monthly_pro' | 'credit_pack',
         successUrl: `${window.location.origin}/dashboard?success=true`,
         cancelUrl: `${window.location.origin}/pricing?canceled=true`
       })
