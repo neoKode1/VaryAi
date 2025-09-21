@@ -95,7 +95,7 @@ export default function DashboardPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900 flex items-center justify-center">
+      <div className="min-h-screen flex items-center justify-center" style={{ backgroundColor: 'oklch(21% 0.034 264.665)' }}>
         <div className="text-white text-xl">Loading dashboard...</div>
       </div>
     )
@@ -103,7 +103,7 @@ export default function DashboardPage() {
 
   if (!user) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900 flex items-center justify-center">
+      <div className="min-h-screen flex items-center justify-center" style={{ backgroundColor: 'oklch(21% 0.034 264.665)' }}>
         <Card className="w-full max-w-md">
           <CardContent className="pt-6">
             <div className="text-center space-y-4">
@@ -122,7 +122,7 @@ export default function DashboardPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900">
+    <div className="min-h-screen" style={{ backgroundColor: 'oklch(21% 0.034 264.665)' }}>
       <div className="container mx-auto px-4 py-8">
         {/* Header */}
         <div className="mb-8">

@@ -1,9 +1,11 @@
 import { supabaseAdmin } from './supabase';
+import { weightedCreditService } from './weightedCreditService';
 
 export interface CreditCheckResult {
   hasCredits: boolean;
   availableCredits: number;
   modelCost: number;
+  creditsRequired: number;
   error?: string;
 }
 
@@ -28,6 +30,7 @@ export class CreditService {
           hasCredits: false,
           availableCredits: 0,
           modelCost: 0,
+          creditsRequired: 0,
           error: 'Database connection not available'
         };
       }
@@ -44,6 +47,7 @@ export class CreditService {
           hasCredits: false,
           availableCredits: 0,
           modelCost: 0,
+          creditsRequired: 0,
           error: 'User not found'
         };
       }
@@ -61,10 +65,11 @@ export class CreditService {
           hasCredits: true,
           availableCredits: 999999, // Unlimited for admin
           modelCost: Number(modelData?.cost_per_generation || 0),
+          creditsRequired: 0, // No credits required for admin
         };
       }
 
-      // Get model cost
+      // Get model cost and credits required using weighted system
       const { data: modelData, error: modelError } = await supabaseAdmin
         .from('model_costs')
         .select('cost_per_generation')
@@ -77,9 +82,13 @@ export class CreditService {
           hasCredits: false,
           availableCredits: 0,
           modelCost: 0,
+          creditsRequired: 0,
           error: `Model ${modelName} not found or inactive`
         };
       }
+
+      // Calculate credits required using weighted system
+      const creditsRequired = weightedCreditService.calculateCreditsRequired(modelName);
 
       // Get user's available credits - check both user_credits table and users.credit_balance
       let availableCredits = 0;
@@ -110,7 +119,8 @@ export class CreditService {
           return {
             hasCredits: false,
             availableCredits: 0,
-            modelCost: modelData.cost_per_generation,
+            modelCost: Number(modelData.cost_per_generation),
+            creditsRequired,
             error: 'No credits found for user in either user_credits or users table'
           };
         }
@@ -118,9 +128,10 @@ export class CreditService {
       const modelCost = Number(modelData.cost_per_generation);
 
       return {
-        hasCredits: availableCredits >= modelCost,
+        hasCredits: availableCredits >= creditsRequired,
         availableCredits,
         modelCost,
+        creditsRequired,
       };
 
     } catch (error) {
@@ -128,6 +139,7 @@ export class CreditService {
         hasCredits: false,
         availableCredits: 0,
         modelCost: 0,
+        creditsRequired: 0,
         error: error instanceof Error ? error.message : 'Unknown error'
       };
     }
@@ -237,7 +249,7 @@ export class CreditService {
         }
       }
 
-      // Get model cost for response
+      // Get model cost and credits required for response
       const { data: modelData } = await supabaseAdmin
         .from('model_costs')
         .select('cost_per_generation')
@@ -245,9 +257,12 @@ export class CreditService {
         .eq('is_active', true)
         .single();
 
+      // Calculate credits used using weighted system
+      const creditsUsed = weightedCreditService.calculateCreditsRequired(modelName);
+
       return {
         success: true,
-        creditsUsed: Number(modelData?.cost_per_generation || 0),
+        creditsUsed: creditsUsed,
         remainingCredits: remainingCredits,
       };
 

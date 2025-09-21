@@ -49,7 +49,7 @@ export const LevelProgressionModal: React.FC<LevelProgressionModalProps> = ({
 
   return (
     <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-      <div className="bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900 rounded-2xl p-8 max-w-2xl w-full border border-white/20 shadow-2xl">
+      <div className="rounded-2xl p-8 max-w-2xl w-full border border-white/20 shadow-2xl" style={{ backgroundColor: 'oklch(21% 0.034 264.665)' }}>
         {/* Header */}
         <div className="flex items-center justify-between mb-6">
           <div className="flex items-center gap-3">

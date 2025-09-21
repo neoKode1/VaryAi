@@ -139,7 +139,7 @@ export default function AdminCreditsPage() {
 
   if (!user) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900 flex items-center justify-center">
+      <div className="min-h-screen flex items-center justify-center" style={{ backgroundColor: 'oklch(21% 0.034 264.665)' }}>
         <div className="text-white text-center">
           <h1 className="text-2xl font-bold mb-4">Access Denied</h1>
           <p>Please sign in to access the admin panel.</p>
@@ -149,7 +149,7 @@ export default function AdminCreditsPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900 p-6">
+    <div className="min-h-screen p-6" style={{ backgroundColor: 'oklch(21% 0.034 264.665)' }}>
       <div className="max-w-7xl mx-auto">
         <div className="mb-8">
           <h1 className="text-4xl font-bold text-white mb-2">Credit System Admin</h1>

@@ -160,7 +160,7 @@ export const CompactCreditDisplay: React.FC<CompactCreditDisplayProps> = ({
         }`}
       >
         <CreditCard className="w-3 h-3" />
-        <span>{isInGracePeriod ? 'Buy Now' : 'Buy'}</span>
+        <span>{isInGracePeriod ? 'Subscribe Now' : 'Subscribe'}</span>
       </button>
     </div>
   );

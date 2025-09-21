@@ -1,5 +1,5 @@
 import Stripe from 'stripe';
-import { supabase } from './supabase';
+import { supabaseAdmin } from './supabase';
 import { 
   StripeConfig, 
   StripeCustomer, 
@@ -45,7 +45,11 @@ export class StripeService {
       });
 
       // Store customer in database
-      const { error } = await supabase
+      if (!supabaseAdmin) {
+        throw new Error('Database connection not available');
+      }
+      
+      const { error } = await supabaseAdmin
         .from('stripe_customers')
         .insert({
           user_id: userId,
@@ -77,7 +81,11 @@ export class StripeService {
    */
   async getCustomerByUserId(userId: string): Promise<StripeCustomer | null> {
     try {
-      const { data, error } = await supabase
+      if (!supabaseAdmin) {
+        throw new Error('Database connection not available');
+      }
+      
+      const { data, error } = await supabaseAdmin
         .from('stripe_customers')
         .select('*')
         .eq('user_id', userId)
@@ -125,7 +133,11 @@ export class StripeService {
       const { userId, tier, successUrl, cancelUrl } = request;
 
       // Get or create customer
-      const { data: user } = await supabase
+      if (!supabaseAdmin) {
+        throw new Error('Database connection not available');
+      }
+      
+      const { data: user } = await supabaseAdmin
         .from('users')
         .select('email, name')
         .eq('id', userId)
@@ -142,10 +154,22 @@ export class StripeService {
       if (tier === 'credit_pack') {
         // Default to creditPack5 for credit_pack tier
         priceId = this.config.priceIds.creditPack5;
+      } else if (tier === 'creditPack5' || tier === 'creditPack10' || tier === 'creditPack25') {
+        // Handle specific credit pack tiers
+        priceId = this.config.priceIds[tier as keyof typeof this.config.priceIds];
       } else {
         priceId = this.config.priceIds[tier as keyof typeof this.config.priceIds];
       }
 
+      // Check if price ID exists
+      if (!priceId) {
+        throw new Error(`Price ID not configured for tier: ${tier}. Please check your environment variables.`);
+      }
+
+      // Determine if this is a subscription or one-time payment
+      // Weekly Pro and Heavy are subscriptions, credit packs are one-time payments
+      const isSubscription = tier === 'weeklyPro' || tier === 'weekly_pro' || tier === 'heavy';
+      
       // Create checkout session
       const session = await this.stripe.checkout.sessions.create({
         customer: customer.id,
@@ -156,19 +180,21 @@ export class StripeService {
             quantity: 1,
           },
         ],
-        mode: 'subscription',
+        mode: isSubscription ? 'subscription' : 'payment',
         success_url: successUrl,
         cancel_url: cancelUrl,
         metadata: {
           userId,
           tier,
         },
-        subscription_data: {
-          metadata: {
-            userId,
-            tier,
+        ...(isSubscription && {
+          subscription_data: {
+            metadata: {
+              userId,
+              tier,
+            },
           },
-        },
+        }),
       });
 
       return {
@@ -191,9 +217,27 @@ export class StripeService {
     try {
       const { userId, returnUrl } = request;
 
-      const customer = await this.getCustomerByUserId(userId);
+      let customer = await this.getCustomerByUserId(userId);
+      
+      // If customer doesn't exist, create one
       if (!customer) {
-        throw new Error('Customer not found');
+        // Get user details from database
+        if (!supabaseAdmin) {
+          throw new Error('Database connection not available');
+        }
+        
+        const { data: user } = await supabaseAdmin
+          .from('users')
+          .select('email, name')
+          .eq('id', userId)
+          .single();
+
+        if (!user) {
+          throw new Error('User not found');
+        }
+
+        // Create new customer
+        customer = await this.createCustomer(userId, user.email, user.name);
       }
 
       const session = await this.stripe.billingPortal.sessions.create({
@@ -207,6 +251,12 @@ export class StripeService {
 
     } catch (error) {
       console.error('Error creating customer portal session:', error);
+      
+      // Handle specific Stripe configuration errors
+      if (error instanceof Error && error.message.includes('No configuration provided')) {
+        throw new Error('Billing portal is not configured. Please contact support or try again later.');
+      }
+      
       throw error;
     }
   }
@@ -282,7 +332,11 @@ export class StripeService {
       }
 
       // Update user tier in database
-      await supabase
+      if (!supabaseAdmin) {
+        throw new Error('Database connection not available');
+      }
+      
+      await supabaseAdmin
         .from('users')
         .update({
           tier,
@@ -314,7 +368,11 @@ export class StripeService {
       }
 
       // Update user subscription status
-      await supabase
+      if (!supabaseAdmin) {
+        throw new Error('Database connection not available');
+      }
+      
+      await supabaseAdmin
         .from('users')
         .update({
           subscription_status: subscription.status,
@@ -343,7 +401,11 @@ export class StripeService {
       }
 
       // Downgrade user to free tier
-      await supabase
+      if (!supabaseAdmin) {
+        throw new Error('Database connection not available');
+      }
+      
+      await supabaseAdmin
         .from('users')
         .update({
           tier: 'free',
@@ -372,7 +434,11 @@ export class StripeService {
 
         if (userId) {
           // Reset usage counters on successful payment
-          await supabase
+          if (!supabaseAdmin) {
+            throw new Error('Database connection not available');
+          }
+          
+          await supabaseAdmin
             .from('users')
             .update({
               monthly_generations: 0,
@@ -404,7 +470,11 @@ export class StripeService {
 
         if (userId) {
           // Update subscription status to past_due
-          await supabase
+          if (!supabaseAdmin) {
+            throw new Error('Database connection not available');
+          }
+          
+          await supabaseAdmin
             .from('users')
             .update({
               subscription_status: 'past_due',

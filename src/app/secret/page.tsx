@@ -1525,7 +1525,7 @@ export default function SecretPage() {
   // Show loading screen while checking authentication
   if (authLoading || accessLoading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900 flex items-center justify-center">
+      <div className="min-h-screen flex items-center justify-center" style={{ backgroundColor: 'oklch(21% 0.034 264.665)' }}>
         <div className="text-center">
           <Loader2 className="w-8 h-8 animate-spin text-white mx-auto mb-4" />
           <p className="text-white/80">Loading Secret Level...</p>
@@ -1537,7 +1537,7 @@ export default function SecretPage() {
   // Check if user has secret access
   if (user && hasSecretAccess === false) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900 flex items-center justify-center">
+      <div className="min-h-screen flex items-center justify-center" style={{ backgroundColor: 'oklch(21% 0.034 264.665)' }}>
         <div className="text-center max-w-md mx-auto px-6">
           <Lock className="w-16 h-16 text-yellow-400 mx-auto mb-6" />
           <h1 className="text-3xl font-bold text-white mb-4">Secret Level Access Required</h1>
@@ -1565,7 +1565,7 @@ export default function SecretPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900 relative overflow-hidden">
+    <div className="min-h-screen relative overflow-hidden" style={{ backgroundColor: 'oklch(21% 0.034 264.665)' }}>
       {/* Video Background */}
       <div className="fixed inset-0 w-full h-full z-0">
         <video

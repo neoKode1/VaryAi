@@ -565,7 +565,7 @@ export default function ProfilePage() {
   // Show loading state while auth is loading
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900 flex items-center justify-center">
+      <div className="min-h-screen flex items-center justify-center" style={{ backgroundColor: 'oklch(21% 0.034 264.665)' }}>
         <div className="text-center">
           <div className="text-white text-xl mb-4">Loading...</div>
           <div className="text-gray-300 text-sm">Please wait while we verify your authentication.</div>
@@ -576,7 +576,7 @@ export default function ProfilePage() {
 
   if (!profile) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900 flex items-center justify-center">
+      <div className="min-h-screen flex items-center justify-center" style={{ backgroundColor: 'oklch(21% 0.034 264.665)' }}>
         <div className="text-center">
           <div className="text-white text-xl mb-4">Profile not found</div>
           <div className="text-gray-300 text-sm mb-4">

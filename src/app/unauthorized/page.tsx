@@ -7,7 +7,7 @@ import Link from 'next/link'
 
 export default function UnauthorizedPage() {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900 flex items-center justify-center p-4">
+    <div className="min-h-screen flex items-center justify-center p-4" style={{ backgroundColor: 'oklch(21% 0.034 264.665)' }}>
       <Card className="w-full max-w-md">
         <CardHeader className="text-center">
           <div className="mx-auto mb-4 p-3 rounded-full bg-red-500/20 w-fit">

@@ -26,28 +26,28 @@ const pricingPlans = [
     icon: Zap
   },
   {
-    name: 'Light',
-    price: '$9',
-    period: 'month',
+    name: 'Weekly Pro',
+    price: '$7.50',
+    period: 'week',
     description: 'Great for casual creators',
     features: [
-      '50 generations per month',
+      '150 credits per week',
       'All image models',
       'Priority processing',
       'HD downloads',
       'Email support'
     ],
-    tier: 'light',
+    tier: 'weeklyPro',
     popular: true,
     icon: Star
   },
   {
     name: 'Heavy',
-    price: '$29',
+    price: '$14.99',
     period: 'month',
     description: 'For power users and professionals',
     features: [
-      '200 generations per month',
+      '375 credits per month',
       'All models (image + video)',
       'Fastest processing',
       '4K downloads',
@@ -63,22 +63,22 @@ const pricingPlans = [
 const creditPacks = [
   {
     name: 'Credit Pack 5',
-    price: '$5',
-    credits: 50,
+    price: '$6.25',
+    credits: 125,
     description: 'Perfect for trying out premium features',
     popular: false
   },
   {
     name: 'Credit Pack 10',
-    price: '$9',
-    credits: 100,
+    price: '$12.50',
+    credits: 250,
     description: 'Great value for regular users',
     popular: true
   },
   {
     name: 'Credit Pack 25',
-    price: '$19',
-    credits: 250,
+    price: '$31.25',
+    credits: 625,
     description: 'Best value for heavy users',
     popular: false
   }
@@ -121,20 +121,40 @@ export default function PricingPage() {
     setLoading(tier)
 
     try {
-      const stripeService = createStripeService()
+      // Get authentication token
+      const { data: { session } } = await supabase.auth.getSession()
+      if (!session) {
+        alert('Authentication required - please sign in again')
+        return
+      }
+
       // Map tier names to match Stripe service expectations
-      const mappedTier = tier === 'weeklyPro' ? 'weekly_pro' : 
-                        tier === 'monthlyPro' ? 'monthly_pro' : tier
+      // No mapping needed - use tier names directly as they match environment variables
+      const mappedTier = tier
       
-      const { url } = await stripeService.createCheckoutSession({
-        userId: user.id,
-        tier: mappedTier as 'light' | 'heavy' | 'weekly_pro' | 'monthly_pro' | 'credit_pack',
-        successUrl: `${window.location.origin}/dashboard?success=true`,
-        cancelUrl: `${window.location.origin}/pricing?canceled=true`
+      // Call our new API endpoint
+      const response = await fetch('/api/stripe/checkout', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${session.access_token}`,
+        },
+        body: JSON.stringify({
+          tier: mappedTier,
+          successUrl: `${window.location.origin}/dashboard?success=true`,
+          cancelUrl: `${window.location.origin}/pricing?canceled=true`
+        })
       })
 
-      if (url) {
-        window.location.href = url
+      const data = await response.json()
+
+      if (!data.success) {
+        alert(data.message || 'Failed to start checkout. Please try again.')
+        return
+      }
+
+      if (data.url) {
+        window.location.href = data.url
       }
     } catch (error) {
       console.error('Error creating checkout session:', error)
@@ -153,16 +173,45 @@ export default function PricingPage() {
     setLoading(packName)
 
     try {
-      const stripeService = createStripeService()
-      const { url } = await stripeService.createCheckoutSession({
-        userId: user.id,
-        tier: 'credit_pack',
-        successUrl: `${window.location.origin}/dashboard?credits=true`,
-        cancelUrl: `${window.location.origin}/pricing?canceled=true`
+      // Get authentication token
+      const { data: { session } } = await supabase.auth.getSession()
+      if (!session) {
+        alert('Authentication required - please sign in again')
+        return
+      }
+
+      // Map pack name to tier
+      const packTierMap: { [key: string]: string } = {
+        'Credit Pack 5': 'creditPack5',
+        'Credit Pack 10': 'creditPack10', 
+        'Credit Pack 25': 'creditPack25'
+      }
+      
+      const tier = packTierMap[packName] || 'creditPack5'
+      
+      // Call our new API endpoint
+      const response = await fetch('/api/stripe/checkout', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${session.access_token}`,
+        },
+        body: JSON.stringify({
+          tier: tier,
+          successUrl: `${window.location.origin}/dashboard?credits=true`,
+          cancelUrl: `${window.location.origin}/pricing?canceled=true`
+        })
       })
 
-      if (url) {
-        window.location.href = url
+      const data = await response.json()
+
+      if (!data.success) {
+        alert(data.message || 'Failed to start checkout. Please try again.')
+        return
+      }
+
+      if (data.url) {
+        window.location.href = data.url
       }
     } catch (error) {
       console.error('Error creating checkout session:', error)
@@ -173,7 +222,7 @@ export default function PricingPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900">
+    <div className="min-h-screen" style={{ backgroundColor: 'oklch(21% 0.034 264.665)' }}>
       <div className="container mx-auto px-4 py-16">
         {/* Header */}
         <div className="text-center mb-16">

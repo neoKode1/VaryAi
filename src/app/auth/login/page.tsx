@@ -44,7 +44,7 @@ function LoginForm() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900 p-4">
+    <div className="min-h-screen flex items-center justify-center p-4" style={{ backgroundColor: 'oklch(21% 0.034 264.665)' }}>
       <Card className="w-full max-w-md">
         <CardHeader className="space-y-1">
           <CardTitle className="text-2xl font-bold text-center">Welcome back</CardTitle>
@@ -135,7 +135,7 @@ function LoginForm() {
 export default function LoginPage() {
   return (
     <Suspense fallback={
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900 p-4">
+      <div className="min-h-screen flex items-center justify-center p-4" style={{ backgroundColor: 'oklch(21% 0.034 264.665)' }}>
         <div className="text-white text-xl">Loading...</div>
       </div>
     }>

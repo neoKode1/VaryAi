@@ -58,7 +58,7 @@ export interface StripeWebhookEvent {
 
 export interface CreateCheckoutSessionRequest {
   userId: string;
-  tier: 'light' | 'heavy' | 'weekly_pro' | 'monthly_pro' | 'credit_pack';
+  tier: 'light' | 'heavy' | 'weekly_pro' | 'weeklyPro' | 'monthly_pro' | 'credit_pack' | 'creditPack5' | 'creditPack10' | 'creditPack25';
   successUrl: string;
   cancelUrl: string;
 }

@@ -1,33 +1,60 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { supabaseAdmin } from '@/lib/supabase';
 import { createStripeService } from '@/lib/stripeService';
-import { CreateCustomerPortalRequest } from '@/types/stripe';
 
 export async function POST(request: NextRequest) {
   try {
-    const body: CreateCustomerPortalRequest = await request.json();
-    const { userId, returnUrl } = body;
-
-    // Validate request
-    if (!userId || !returnUrl) {
+    // Check if supabaseAdmin is available
+    if (!supabaseAdmin) {
       return NextResponse.json(
-        { error: 'Missing required fields' },
-        { status: 400 }
+        { success: false, message: 'Service unavailable' },
+        { status: 503 }
       );
     }
 
-    // Create customer portal session
+    // Check authorization
+    const authHeader = request.headers.get('authorization');
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      return NextResponse.json(
+        { success: false, message: 'Authentication required' },
+        { status: 401 }
+      );
+    }
+
+    const token = authHeader.split(' ')[1];
+    const { data: { user }, error: authError } = await supabaseAdmin.auth.getUser(token);
+
+    if (authError || !user) {
+      return NextResponse.json(
+        { success: false, message: 'Invalid authentication' },
+        { status: 401 }
+      );
+    }
+
+    const body = await request.json();
+    const { returnUrl } = body;
+
+    // Create Stripe service
     const stripeService = createStripeService();
-    const session = await stripeService.createCustomerPortalSession({
-      userId,
-      returnUrl,
+
+    // Create customer portal session
+    const result = await stripeService.createCustomerPortalSession({
+      userId: user.id,
+      returnUrl: returnUrl || `${request.nextUrl.origin}/billing`
     });
 
-    return NextResponse.json(session);
+    return NextResponse.json({
+      success: true,
+      url: result.url
+    });
 
   } catch (error) {
-    console.error('❌ Customer portal session creation error:', error);
+    console.error('Stripe portal error:', error);
     return NextResponse.json(
-      { error: 'Failed to create customer portal session' },
+      { 
+        success: false, 
+        message: error instanceof Error ? error.message : 'Internal server error' 
+      },
       { status: 500 }
     );
   }

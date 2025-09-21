@@ -13,6 +13,10 @@ STRIPE_WEEKLY_PRO_PRICE_ID=price_1S7gKvA2eb3W4RrA9z3EDlOl
 STRIPE_MONTHLY_PRO_PRODUCT_ID=prod_T3nxInWbutJEIp
 STRIPE_MONTHLY_PRO_PRICE_ID=price_1S7gLOA2eb3W4RrANVc700HL
 
+# vARY Heavy ($14.99/month - 375 credits)
+STRIPE_HEAVY_PRODUCT_ID=prod_your_heavy_product_id_here
+STRIPE_HEAVY_PRICE_ID=price_your_heavy_price_id_here
+
 # vARY Credits 5 ($5.00 one-time - 125 credits)
 STRIPE_CREDIT_PACK_5_PRODUCT_ID=prod_T3nxt1tcb6Yof0
 STRIPE_CREDIT_PACK_5_PRICE_ID=price_1S7gM1A2eb3W4RrAh4ySC6rL
@@ -26,8 +30,8 @@ STRIPE_CREDIT_PACK_25_PRODUCT_ID=prod_T3nycouRiti1cN
 STRIPE_CREDIT_PACK_25_PRICE_ID=price_1S7gMxA2eb3W4RrAuAv0G8Rt
 
 # Summary:
-# ✅ All 5 vARY products configured
-# ✅ Weekly: $5.99/week (150 credits)
-# ✅ Monthly: $14.99/month (375 credits)  
-# ✅ Credit Packs: $5, $10, $25 (125, 250, 625 credits)
-# 🚀 Ready for pay-as-you-go system deployment!
+# ✅ All 6 vARY products configured
+# ✅ Weekly: $7.50/week (150 credits)
+# ✅ Heavy: $14.99/month (375 credits)
+# ✅ Credit Packs: $6.25, $12.50, $31.25 (125, 250, 625 credits)
+# 🚀 Ready for subscription system deployment!

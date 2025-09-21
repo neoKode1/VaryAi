@@ -59,10 +59,23 @@ export default function BillingPage() {
           subscriptionId: profile.subscription_id,
           customerId: profile.stripe_customer_id
         })
+      } else {
+        // Set default values if no profile found
+        setBillingInfo({
+          currentTier: 'free',
+          subscriptionStatus: 'inactive',
+          cancelAtPeriodEnd: false
+        })
       }
     } catch (error) {
       console.error('Error fetching billing info:', error)
       setMessage({ type: 'error', text: 'Failed to load billing information' })
+      // Set default values on error
+      setBillingInfo({
+        currentTier: 'free',
+        subscriptionStatus: 'inactive',
+        cancelAtPeriodEnd: false
+      })
     } finally {
       setLoading(false)
     }
@@ -73,14 +86,42 @@ export default function BillingPage() {
 
     setActionLoading('portal')
     try {
-      const stripeService = createStripeService()
-      const { url } = await stripeService.createCustomerPortalSession({
-        userId: user.id,
-        returnUrl: window.location.href
+      // Get authentication token
+      const { data: { session } } = await supabase.auth.getSession()
+      if (!session) {
+        setMessage({ type: 'error', text: 'Authentication required - please sign in again' })
+        return
+      }
+
+      // Call our new API endpoint
+      const response = await fetch('/api/stripe/portal', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${session.access_token}`,
+        },
+        body: JSON.stringify({
+          returnUrl: window.location.href
+        })
       })
 
-      if (url) {
-        window.location.href = url
+      const data = await response.json()
+
+      if (!data.success) {
+        const errorMessage = data.message || 'Failed to open billing portal'
+        if (errorMessage.includes('not configured')) {
+          setMessage({ 
+            type: 'error', 
+            text: 'Billing portal is temporarily unavailable. Please contact support for billing assistance.' 
+          })
+        } else {
+          setMessage({ type: 'error', text: errorMessage })
+        }
+        return
+      }
+
+      if (data.url) {
+        window.location.href = data.url
       }
     } catch (error) {
       console.error('Error creating portal session:', error)
@@ -157,7 +198,7 @@ export default function BillingPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900 flex items-center justify-center">
+      <div className="min-h-screen flex items-center justify-center" style={{ backgroundColor: 'oklch(21% 0.034 264.665)' }}>
         <div className="text-white text-xl">Loading billing information...</div>
       </div>
     )
@@ -165,7 +206,7 @@ export default function BillingPage() {
 
   if (!user) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900 flex items-center justify-center">
+      <div className="min-h-screen flex items-center justify-center" style={{ backgroundColor: 'oklch(21% 0.034 264.665)' }}>
         <Card className="w-full max-w-md">
           <CardContent className="pt-6">
             <div className="text-center space-y-4">
@@ -188,7 +229,7 @@ export default function BillingPage() {
   const isPastDue = billingInfo?.subscriptionStatus === 'past_due'
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900">
+    <div className="min-h-screen" style={{ backgroundColor: 'oklch(21% 0.034 264.665)' }}>
       <div className="container mx-auto px-4 py-8">
         {/* Header */}
         <div className="mb-8">
@@ -272,6 +313,15 @@ export default function BillingPage() {
                 </Alert>
               )}
 
+              {billingInfo?.currentTier === 'free' && (
+                <Alert className="border-blue-500">
+                  <CheckCircle className="h-4 w-4" />
+                  <AlertDescription className="text-blue-700">
+                    You&apos;re currently on the free plan. Upgrade to a paid plan to unlock more features and higher limits.
+                  </AlertDescription>
+                </Alert>
+              )}
+
               <div className="pt-4 space-y-2">
                 <Button 
                   onClick={handleManageBilling}
@@ -286,7 +336,7 @@ export default function BillingPage() {
                   ) : (
                     <>
                       <ExternalLink className="mr-2 h-4 w-4" />
-                      Manage Billing
+                      {billingInfo?.currentTier === 'free' ? 'View Billing Portal' : 'Manage Billing'}
                     </>
                   )}
                 </Button>

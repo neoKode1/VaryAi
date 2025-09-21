@@ -7,6 +7,7 @@ import { supabase } from '@/lib/supabase';
 import { useCreditCheck } from '@/hooks/useCreditCheck';
 import { refreshCreditsAfterGeneration } from '@/utils/creditRefresh';
 import CreditPurchaseModal from '@/components/CreditPurchaseModal';
+import SubscriptionModal from '@/components/SubscriptionModal';
 import type { UploadedFile, UploadedImage, ProcessingState, CharacterVariation, RunwayVideoRequest, RunwayVideoResponse, RunwayTaskResponse, EndFrameRequest, EndFrameResponse } from '@/types/gemini';
 // StoredVariation type (extends CharacterVariation with additional properties)
 interface StoredVariation extends CharacterVariation {
@@ -944,6 +945,9 @@ export default function Home() {
   
   // Credit purchase modal state
   const [showCreditPurchaseModal, setShowCreditPurchaseModal] = useState(false);
+  
+  // Subscription modal state
+  const [showSubscriptionModal, setShowSubscriptionModal] = useState(false);
   
   // Mobile image display state
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
@@ -6208,7 +6212,7 @@ export default function Home() {
         onToggleGallery={() => setShowGallery(!showGallery)}
         showGallery={showGallery}
         onPurchaseCredits={() => {
-          setShowCreditPurchaseModal(true);
+          setShowSubscriptionModal(true);
         }}
       />
       
@@ -9236,6 +9240,12 @@ export default function Home() {
             } 
           }));
         }}
+      />
+
+      {/* Subscription Modal */}
+      <SubscriptionModal
+        isOpen={showSubscriptionModal}
+        onClose={() => setShowSubscriptionModal(false)}
       />
 
       {/* Mobile Bottom Navigation - REMOVED for cleaner UX */}
