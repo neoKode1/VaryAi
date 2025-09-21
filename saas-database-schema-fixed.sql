@@ -1,4 +1,4 @@
--- SaaS Database Schema for VaryAI
+-- SaaS Database Schema for VaryAI (Fixed Version)
 -- This script adds the necessary tables and features for a complete SaaS application
 
 -- Activity Logs Table
@@ -51,6 +51,10 @@ ALTER TABLE public.users ADD COLUMN IF NOT EXISTS last_reset_date TIMESTAMP WITH
 ALTER TABLE public.users ADD COLUMN IF NOT EXISTS last_activity TIMESTAMP WITH TIME ZONE DEFAULT NOW();
 ALTER TABLE public.users ADD COLUMN IF NOT EXISTS email_verified BOOLEAN DEFAULT FALSE;
 ALTER TABLE public.users ADD COLUMN IF NOT EXISTS onboarding_completed BOOLEAN DEFAULT FALSE;
+ALTER TABLE public.users ADD COLUMN IF NOT EXISTS email_notifications BOOLEAN DEFAULT TRUE;
+ALTER TABLE public.users ADD COLUMN IF NOT EXISTS marketing_emails BOOLEAN DEFAULT FALSE;
+ALTER TABLE public.users ADD COLUMN IF NOT EXISTS two_factor_enabled BOOLEAN DEFAULT FALSE;
+ALTER TABLE public.users ADD COLUMN IF NOT EXISTS api_access_enabled BOOLEAN DEFAULT FALSE;
 
 -- Stripe Customers Table
 CREATE TABLE IF NOT EXISTS public.stripe_customers (
@@ -79,7 +83,7 @@ CREATE TABLE IF NOT EXISTS public.stripe_subscriptions (
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
--- Notifications Table
+-- Notifications Table (Fixed - using is_read instead of read)
 CREATE TABLE IF NOT EXISTS public.notifications (
     id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
     user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
@@ -344,14 +348,3 @@ GRANT USAGE ON SCHEMA public TO authenticated;
 GRANT ALL ON ALL TABLES IN SCHEMA public TO authenticated;
 GRANT ALL ON ALL SEQUENCES IN SCHEMA public TO authenticated;
 GRANT EXECUTE ON ALL FUNCTIONS IN SCHEMA public TO authenticated;
-
--- Create a default admin user (optional - remove in production)
--- INSERT INTO public.users (id, email, name, role, tier, subscription_status)
--- VALUES (
---     '00000000-0000-0000-0000-000000000000', -- Replace with actual admin user ID
---     'admin@varyai.com',
---     'Admin User',
---     'admin',
---     'admin',
---     'active'
--- ) ON CONFLICT (id) DO NOTHING;
