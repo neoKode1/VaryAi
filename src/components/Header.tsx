@@ -1,7 +1,7 @@
 'use client'
 
 import React, { useState, useEffect } from 'react'
-import { User, LogOut, Settings, UserPlus, LogIn, MessageCircle, FolderOpen, Lock } from 'lucide-react'
+import { User, LogOut, Settings, UserPlus, LogIn, MessageCircle, FolderOpen, Lock, CreditCard, BarChart3, Shield } from 'lucide-react'
 import { useAuth } from '@/contexts/AuthContext'
 import { useUsageTracking } from '@/hooks/useUsageTracking'
 import { useRouter } from 'next/navigation'
@@ -347,13 +347,48 @@ export const Header: React.FC<HeaderProps> = ({ onSignUpClick, onSignInClick, sh
                      <button
                        onClick={() => {
                          setShowUserMenu(false)
-                         router.push('/profile')
+                         router.push('/dashboard')
+                       }}
+                       className="flex items-center space-x-2 w-full px-4 py-2 text-sm text-gray-300 hover:bg-gray-700 hover:text-white transition-colors"
+                     >
+                       <BarChart3 className="w-4 h-4" />
+                       <span>Dashboard</span>
+                     </button>
+                     
+                     <button
+                       onClick={() => {
+                         setShowUserMenu(false)
+                         router.push('/billing')
+                       }}
+                       className="flex items-center space-x-2 w-full px-4 py-2 text-sm text-gray-300 hover:bg-gray-700 hover:text-white transition-colors"
+                     >
+                       <CreditCard className="w-4 h-4" />
+                       <span>Billing</span>
+                     </button>
+                     
+                     <button
+                       onClick={() => {
+                         setShowUserMenu(false)
+                         router.push('/settings')
                        }}
                        className="flex items-center space-x-2 w-full px-4 py-2 text-sm text-gray-300 hover:bg-gray-700 hover:text-white transition-colors"
                      >
                        <Settings className="w-4 h-4" />
                        <span>Settings</span>
                      </button>
+                     
+                     {user?.email === '1deeptechnology@gmail.com' && (
+                       <button
+                         onClick={() => {
+                           setShowUserMenu(false)
+                           router.push('/admin')
+                         }}
+                         className="flex items-center space-x-2 w-full px-4 py-2 text-sm text-gray-300 hover:bg-gray-700 hover:text-white transition-colors"
+                       >
+                         <Shield className="w-4 h-4" />
+                         <span>Admin</span>
+                       </button>
+                     )}
                      
                      <button
                        onClick={handleSignOut}
