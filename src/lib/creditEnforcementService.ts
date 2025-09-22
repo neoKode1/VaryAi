@@ -31,12 +31,12 @@ export interface CreditDeductionResult {
 // Model cost mapping (credits per generation)
 const MODEL_COSTS: Record<string, number> = {
   // Image models (1 credit each)
-  'nano-banana': 1,
+  'fal-ai/nano-banana/edit': 1,
   'runway-t2i': 1,
   'minimax-2.0': 1,
   'kling-2.1-master': 1,
   'gemini-25-flash-image-edit': 1,
-  'seedream-4-edit': 1,
+  'fal-ai/bytedance/seedream/v4/edit': 1,
   
   // Video models (4 credits each)
   'veo3-fast': 4,

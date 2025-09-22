@@ -697,12 +697,6 @@ export default function CommunityPage() {
                       </div>
                     )}
                     
-                    {/* Debug info - remove this after testing */}
-                    {process.env.NODE_ENV === 'development' && (
-                      <div className="text-xs text-gray-500 mt-1">
-                        Debug: User ID: {user?.id || 'null'}, Post User ID: {post.user_id}, Match: {user && post.user_id === user.id ? 'YES' : 'NO'}
-                      </div>
-                    )}
                   </div>
                   <p className="text-gray-200 mb-3 leading-relaxed">{post.content}</p>
                   

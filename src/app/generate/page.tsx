@@ -36,8 +36,8 @@ type GenerationMode =
   | 'flux-dev'
   | 'seedream-3'
   | 'seedance-1-pro'
-  | 'bytedance-seedream-4'
-  | 'seedream-4-edit'
+  | 'bytedance/seedream-4'
+  | 'fal-ai/bytedance/seedream/v4/edit'
   // Mid-Tier Image-to-Video Models ($0.08 - $0.12)
   | 'minimax-video-01'
   | 'stable-video-diffusion-i2v'
@@ -607,6 +607,11 @@ const CHARACTER_STYLE_PROMPTS = [
     name: 'Adventure Time',
     description: 'Photo-realistic version of whimsical animation style from Pendleton Ward\'s Adventure Time, with realistic fantastical character designs.',
     prompt: 'Transform character into realistic Adventure Time style while preserving user\'s original prompt and character specifications'
+  },
+  {
+    name: 'Halloween Me',
+    description: 'Transform any character into a Halloween costume style, creating spooky, festive, or horror-themed variations while maintaining the original character essence.',
+    prompt: 'Style the character in Halloween costume style, creating a spooky, festive, or horror-themed transformation while preserving the original character\'s essence and user\'s specific prompt requirements'
   }
 ];
 
@@ -1191,8 +1196,8 @@ export default function Home() {
       'flux-dev': 20, // 20 seconds for Flux Dev image generation
       'seedream-3': 25, // 25 seconds for Seedream 3 text-to-image
       'seedance-1-pro': 90, // 90 seconds for Seedance 1 Pro video generation
-      'bytedance-seedream-4': 35, // 35 seconds for Seedream 4 with custom sizing
-      'seedream-4-edit': 30, // 30 seconds for Seedream 4.0 Edit image editing
+      'bytedance/seedream-4': 35, // 35 seconds for Seedream 4 with custom sizing
+      'fal-ai/bytedance/seedream/v4/edit': 30, // 30 seconds for Seedream 4.0 Edit image editing
       // Mid-Tier Image-to-Video Models
       'minimax-video-01': 60, // 1 minute for Minimax Video 01
       'stable-video-diffusion-i2v': 45, // 45 seconds for Stable Video Diffusion
@@ -1400,8 +1405,8 @@ export default function Home() {
       if (contentMode === 'image') {
         // IMAGE MODE: Only show image generation and editing models
       modes.push('nano-banana');
-      modes.push('seedream-4-edit'); // Seedream 4 Edit
-      modes.push('bytedance-seedream-4'); // Seedream 4
+      modes.push('fal-ai/bytedance/seedream/v4/edit'); // Seedream 4 Edit
+      modes.push('bytedance/seedream-4'); // Seedream 4
       modes.push('gemini-25-flash-image-edit'); // Gemini 2.5 Flash Image Edit
       modes.push('luma-photon-reframe'); // Luma Photon Reframe for image resizing
       } else if (contentMode === 'video') {
@@ -1422,8 +1427,8 @@ export default function Home() {
       if (contentMode === 'image') {
         // IMAGE MODE: Show image editing models for character combination
       modes.push('nano-banana'); // Character combination
-      modes.push('seedream-4-edit'); // Seedream 4 Edit
-      modes.push('bytedance-seedream-4'); // Seedream 4
+      modes.push('fal-ai/bytedance/seedream/v4/edit'); // Seedream 4 Edit
+      modes.push('bytedance/seedream-4'); // Seedream 4
       modes.push('gemini-25-flash-image-edit'); // Gemini Flash Edit for character combination
       } else if (contentMode === 'video') {
         // VIDEO MODE: Show EndFrame mode for 2 images
@@ -1446,8 +1451,8 @@ export default function Home() {
       'runway-t2i': isMobile ? 'Text to Image' : 'Runway T2I', // Remove "Runway" from mobile view
       'runway-video': 'Runway ALEPH (Video Restyle)',
       'veo3-fast': 'Veo3 Fast',
-      'seedream-4-edit': 'Seedream 4 Edit',
-      'bytedance-seedream-4': 'Seedream 4',
+      'fal-ai/bytedance/seedream/v4/edit': 'Seedream 4 Edit',
+      'bytedance/seedream-4': 'Seedream 4',
       'gemini-25-flash-image-edit': 'Gemini Flash Edit',
       'luma-photon-reframe': 'Luma Photon Reframe',
             'kling-ai-avatar': 'Kling AI Avatar (2-60 min)',
@@ -1761,8 +1766,8 @@ export default function Home() {
       const isImageModel = (
         generationMode === 'nano-banana' ||
         generationMode === 'flux-dev' ||
-        generationMode === 'seedream-4-edit' ||
-        generationMode === 'bytedance-seedream-4' ||
+        generationMode === 'fal-ai/bytedance/seedream/v4/edit' ||
+        generationMode === 'bytedance/seedream-4' ||
         generationMode === 'runway-t2i' ||
         generationMode === 'gemini-25-flash-image-edit' ||
         generationMode === 'luma-photon-reframe'
@@ -3278,7 +3283,7 @@ export default function Home() {
       case 'flux-dev':
         await handleFluxDevGeneration();
         break;
-      case 'bytedance-seedream-4':
+      case 'bytedance/seedream-4':
         await handleSeedream4Generation();
         break;
       case 'gemini-25-flash-image-edit':
@@ -3397,6 +3402,95 @@ export default function Home() {
     } catch (error) {
       console.error('❌ Failed to upload image to Supabase and FAL:', error);
       throw error;
+    }
+  };
+
+  const handleHalloweenMe = async () => {
+    // Check if user can generate
+    if (!canGenerate) {
+      showAnimatedErrorNotification('User Error: Free trial limit reached! Sign up for unlimited generations! TOASTY!', 'toasty');
+      return;
+    }
+
+    // Check if we have exactly 2 images for Halloween Me
+    if (uploadedFiles.length !== 2) {
+      showAnimatedErrorNotification('Halloween Me requires exactly 2 images! Upload 2 images to use this feature.', 'bouncing-error');
+      return;
+    }
+
+    // Set the prompt to show "Halloween Me" in the input field
+    setPrompt('Halloween Me');
+
+    startProcessing('image', 'Creating Halloween Me...', 20);
+
+    try {
+      setProcessing(prev => ({ ...prev, progress: 40, currentStep: 'Uploading images...' }));
+
+      // Upload images to Supabase and get URLs
+      const imageUrls = await Promise.all(
+        uploadedFiles.map(async (file) => {
+          if (file.fileType === 'image') {
+            return await uploadImageToSupabaseAndFal(file.base64);
+          }
+          throw new Error('Halloween Me only supports images');
+        })
+      );
+
+      setProcessing(prev => ({ ...prev, progress: 60, currentStep: 'Generating Halloween Me...' }));
+
+      // Call Halloween Me API (backend has the exact prompt)
+      const response = await fetch('/api/halloween-me', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${(await supabase.auth.getSession()).data.session?.access_token}`
+        },
+        body: JSON.stringify({
+          images: uploadedFiles.map(file => file.base64),
+          generationSettings: generationSettings
+        })
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Halloween Me generation failed');
+      }
+
+      const result = await response.json();
+      
+      setProcessing(prev => ({ ...prev, progress: 90, currentStep: 'Finalizing...' }));
+
+      // Set the result as a single variation
+      setVariations([{
+        id: `halloween-me-${Date.now()}`,
+        angle: 'Halloween Me',
+        description: 'Halloween Me transformation',
+        imageUrl: result.imageUrl,
+        fileType: 'image',
+        timestamp: Date.now(),
+        originalPrompt: 'Halloween Me',
+        pose: 'Halloween Me'
+      }]);
+
+      setProcessing(prev => ({ ...prev, progress: 100, currentStep: 'Complete!' }));
+      
+      // Show success notification
+      showAnimatedErrorNotification('🎃 Halloween Me created successfully!', 'success');
+      
+    } catch (error) {
+      console.error('❌ Halloween Me generation failed:', error);
+      showAnimatedErrorNotification(
+        error instanceof Error ? error.message : 'Halloween Me generation failed. Please try again.',
+        'bouncing-error'
+      );
+    } finally {
+      setShowProcessingModal(false);
+      setProcessingStartTime(null);
+      setProcessing({
+        isProcessing: false,
+        progress: 0,
+        currentStep: ''
+      });
     }
   };
 
@@ -4422,7 +4516,7 @@ export default function Home() {
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({
                 userId: user.id,
-                modelName: 'bytedance-seedream-4',
+                modelName: 'bytedance/seedream-4',
                 generationType: 'image'
               })
             });
@@ -6724,25 +6818,50 @@ export default function Home() {
                   </button>
                 )}
                 
-                {/* Generate Button - Show when conditions are met */}
+                {/* Halloween Me Button - Show when exactly 2 images are uploaded */}
+                {uploadedFiles.length === 2 && (
+                  <div className="mb-3">
+                    <button
+                      onClick={handleHalloweenMe}
+                      disabled={isGeneratingImages}
+                      className="w-full py-3 px-4 bg-gradient-to-r from-orange-600 to-red-600 hover:from-orange-700 hover:to-red-700 disabled:from-gray-600 disabled:to-gray-700 text-white rounded-lg font-medium transition-all duration-300 transform hover:scale-105 active:scale-95 disabled:scale-100 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                    >
+                      {isGeneratingImages ? (
+                        <>
+                          <Loader2 className="w-5 h-5 animate-spin" />
+                          Creating...
+                        </>
+                      ) : (
+                        <>
+                          🎃 Halloween Me
+                        </>
+                      )}
+                    </button>
+                  </div>
+                )}
+
+                {/* Generate Buttons - Show when conditions are met */}
                 {uploadedFiles.length > 0 && prompt.trim() && generationMode && (
-                  <button
-                    onClick={handleCharacterVariation}
-                    disabled={isGeneratingImages}
-                    className="w-full py-3 px-4 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 disabled:from-gray-600 disabled:to-gray-700 text-white rounded-lg font-medium transition-all duration-300 transform hover:scale-105 active:scale-95 disabled:scale-100 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-                  >
-                    {isGeneratingImages ? (
-                      <>
-                        <Loader2 className="w-5 h-5 animate-spin" />
-                        Generating...
-                      </>
-                    ) : (
-                      <>
-                        <ArrowRight className="w-5 h-5" />
-                        Generate
-                      </>
-                    )}
-                  </button>
+                  <div className="space-y-3">
+                    {/* Main Generate Button */}
+                    <button
+                      onClick={handleCharacterVariation}
+                      disabled={isGeneratingImages}
+                      className="w-full py-3 px-4 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 disabled:from-gray-600 disabled:to-gray-700 text-white rounded-lg font-medium transition-all duration-300 transform hover:scale-105 active:scale-95 disabled:scale-100 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                    >
+                      {isGeneratingImages ? (
+                        <>
+                          <Loader2 className="w-5 h-5 animate-spin" />
+                          Generating...
+                        </>
+                      ) : (
+                        <>
+                          <ArrowRight className="w-5 h-5" />
+                          Generate
+                        </>
+                      )}
+                    </button>
+                  </div>
                 )}
               </div>
               
@@ -6966,7 +7085,7 @@ export default function Home() {
                         {uploadedFiles.some(file => file.fileType === 'image') && (
                           <>
                             <option value="nano-banana">Nano Banana Edit</option>
-                            <option value="seedream-4-edit">SeedDance 4 Edit</option>
+                            <option value="fal-ai/bytedance/seedream/v4/edit">SeedDance 4 Edit</option>
                             <option value="gemini-25-flash-image-edit">Gemini Flash Edit</option>
                           </>
                         )}
@@ -7888,6 +8007,29 @@ export default function Home() {
                       )}
                     </button>
                   )}
+                </div>
+              )}
+
+              {/* Halloween Me Button - Desktop */}
+              {uploadedFiles.length === 2 && (
+                <div className="hidden md:block">
+                  <button
+                    onClick={handleHalloweenMe}
+                    disabled={isGeneratingImages}
+                    className="px-4 py-2 bg-gradient-to-r from-orange-600 to-red-600 hover:from-orange-700 hover:to-red-700 disabled:from-gray-600 disabled:to-gray-700 text-white rounded-lg font-medium transition-all duration-300 transform hover:scale-105 active:scale-95 disabled:scale-100 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                    title="Halloween Me - Transform character with Halloween costume style"
+                  >
+                    {isGeneratingImages ? (
+                      <>
+                        <Loader2 className="w-4 h-4 animate-spin" />
+                        Creating...
+                      </>
+                    ) : (
+                      <>
+                        🎃 Halloween Me
+                      </>
+                    )}
+                  </button>
                 </div>
               )}
 

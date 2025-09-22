@@ -33,6 +33,48 @@ async function uploadImageToTempUrl(base64Data: string): Promise<string> {
   }
 }
 
+// Function to reframe image to desired aspect ratio using FAL AI reframe model
+async function reframeImageToAspectRatio(imageUrl: string, aspectRatio: string): Promise<string> {
+  try {
+    console.log(`\n🖼️ ===== REFRAMING IMAGE TO ${aspectRatio} =====`);
+    console.log(`🖼️ Input image URL: ${imageUrl}`);
+    console.log(`🖼️ Target aspect ratio: ${aspectRatio}`);
+    
+    // Validate and cast aspect ratio to the correct type
+    const supportedAspectRatios = ['21:9', '16:9', '4:3', '3:2', '1:1', '2:3', '3:4', '9:16', '9:21'] as const;
+    const validAspectRatio = supportedAspectRatios.includes(aspectRatio as any) ? aspectRatio as typeof supportedAspectRatios[number] : '16:9';
+    
+    const reframeInput = {
+      image_url: imageUrl,
+      aspect_ratio: validAspectRatio,
+      output_format: "jpeg" as const,
+      sync_mode: false
+    };
+    
+    console.log(`🖼️ Reframe input:`, JSON.stringify(reframeInput, null, 2));
+    
+    const result = await fal.subscribe("fal-ai/image-editing/reframe", {
+      input: reframeInput,
+      logs: true,
+      onQueueUpdate: (update) => {
+        if (update.status === "IN_PROGRESS") {
+          console.log(`🖼️ Reframe progress:`, update.logs?.map(log => log.message).join(', '));
+        }
+      },
+    });
+    
+    const reframedImageUrl = result.data.images[0]?.url;
+    console.log(`✅ Image reframed successfully: ${reframedImageUrl}`);
+    console.log(`🖼️ ===== END REFRAMING =====\n`);
+    
+    return reframedImageUrl || imageUrl; // Fallback to original if reframing fails
+  } catch (error) {
+    console.error(`❌ Failed to reframe image:`, error);
+    console.log(`⚠️ Using original image URL: ${imageUrl}`);
+    return imageUrl; // Return original URL if reframing fails
+  }
+}
+
 // Enhanced retry configuration for API calls
 const RETRY_CONFIG = {
   maxRetries: 5, // Increased from 3 to handle the 18% failure rate
@@ -106,9 +148,19 @@ async function retryWithBackoff<T>(
       );
       
       const errorInfo = categorizeError(lastError);
+      console.log(`\n⚠️ ===== RETRY ATTEMPT ${attempt + 1}/${maxRetries + 1} =====`);
       console.log(`⚠️ Attempt ${attempt + 1} failed (${errorInfo.category}), retrying in ${delay}ms...`);
       console.log(`📊 Error: ${lastError.message}`);
       console.log(`💬 User message: ${errorInfo.userMessage}`);
+      console.log(`🔍 Error type: ${typeof lastError}`);
+      console.log(`🔍 Error name: ${lastError.name}`);
+      if ('status' in lastError) {
+        console.log(`🔍 Error status: ${(lastError as any).status}`);
+      }
+      if ('body' in lastError) {
+        console.log(`🔍 Error body:`, JSON.stringify((lastError as any).body, null, 2));
+      }
+      console.log(`⚠️ ===== END RETRY ATTEMPT =====\n`);
       
       await new Promise(resolve => setTimeout(resolve, delay));
     }
@@ -310,11 +362,17 @@ if (process.env.FAL_KEY) {
 }
 
 export async function POST(request: NextRequest) {
+  console.log('\n🚀 ===== VARY-CHARACTER API REQUEST START =====');
   console.log('🚀 API Route: /api/vary-character - Request received');
+  console.log('🚀 Timestamp:', new Date().toISOString());
+  console.log('🚀 Request URL:', request.url);
+  console.log('🚀 Request method:', request.method);
+  console.log('🚀 Request headers:', Object.fromEntries(request.headers.entries()));
   
   // Reset stats if needed
   resetStatsIfNeeded();
   apiStats.totalRequests++;
+  console.log(`📊 Total requests: ${apiStats.totalRequests}, Successful: ${apiStats.successfulRequests}, Failed: ${apiStats.failedRequests}`);
   
   // Check circuit breaker
   if (!shouldAllowRequest()) {
@@ -331,6 +389,13 @@ export async function POST(request: NextRequest) {
   try {
     console.log('📝 Parsing request body...');
     const body: CharacterVariationRequest = await request.json();
+    console.log('📝 Request body parsed successfully');
+    console.log('📝 Body keys:', Object.keys(body));
+    console.log('📝 Images count:', body.images?.length || 0);
+    console.log('📝 Prompt length:', body.prompt?.length || 0);
+    console.log('📝 Generation mode:', body.generationMode);
+    console.log('📝 Generation settings:', body.generationSettings);
+    
     const { images, prompt, generationSettings, generationMode } = body;
 
     console.log('✅ Request body parsed successfully');
@@ -980,18 +1045,31 @@ RESPECT THE USER'S CREATIVE VISION - do not standardize or genericize their spec
               
               // Use the correct model based on the generation mode - all models have cross-functionality
               let modelName;
-              if (generationMode === 'seedream-4-edit') {
+              let modelConfig: any = {};
+              
+              if (generationMode === 'fal-ai/bytedance/seedream/v4/edit') {
                 modelName = "fal-ai/bytedance/seedream/v4/edit";
                 console.log(`🤖 Using Seedream 4.0 Edit model: ${modelName}`);
+                // Seedream 4.0 specific configuration based on schema
+                modelConfig = {
+                  image_size: { width: 2048, height: 2048 },
+                  max_images: 1,
+                  enable_safety_checker: true
+                };
               } else if (generationMode === 'gemini-25-flash-image-edit') {
                 modelName = "fal-ai/gemini-25-flash-image/edit";
                 console.log(`🤖 Using Gemini 2.5 Flash Image model: ${modelName}`);
+                // Gemini 2.5 Flash Image uses same schema as Nano Banana
+                modelConfig = {};
               } else {
                 // Default to Nano Banana (character variations, image editing, multiple characters)
                 modelName = "fal-ai/nano-banana/edit";
                 console.log(`🤖 Using Nano Banana model: ${modelName}`);
+                // Nano Banana specific configuration
+                modelConfig = {};
               }
               
+              console.log(`\n🚀 ===== NANO BANANA API CALL START =====`);
               console.log(`🎯 [MODEL API] Calling ${modelName} API for ${variation.angle}`);
               console.log(`📝 [MODEL API] Prompt: ${nanoBananaPrompt}`);
               console.log(`🖼️ [MODEL API] Image URLs count: ${imageUrls.length}`);
@@ -1000,17 +1078,34 @@ RESPECT THE USER'S CREATIVE VISION - do not standardize or genericize their spec
               // Use model-specific official supported parameters
               console.log(`🚀 [MODEL API] Using official ${modelName} parameters for multi-image generation...`);
               
-              const falInput = {
+              // Build input according to FAL schema requirements and parameter order
+              const falInput: any = {
                 prompt: nanoBananaPrompt,
-                image_urls: imageUrls, // Use all uploaded image URLs for multi-image processing
-                num_images: 1,
-                output_format: generationSettings?.outputFormat || "jpeg",
-                // Note: Editor models don't support aspect_ratio - we'll reframe after generation
-                sync_mode: false // Return URLs instead of data URIs
+                image_urls: imageUrls,
+                ...modelConfig // Include model-specific configuration
               };
               
+              // Add optional parameters only if they differ from defaults
+              if (generationSettings?.outputFormat && generationSettings.outputFormat !== "jpeg") {
+                falInput.output_format = generationSettings.outputFormat;
+              }
+              
+              // Always set num_images to 1 for character variations
+              falInput.num_images = 1;
+              
+              // Set sync_mode to false to get URLs instead of data URIs
+              falInput.sync_mode = false;
+              
               // Debug: Log the exact input we're sending to FAL AI
-              console.log(`🔍 [FAL AI DEBUG] Exact input being sent to ${modelName}:`, JSON.stringify(falInput, null, 2));
+              console.log(`\n🔍 [FAL AI INPUT] ===== EXACT INPUT TO NANO BANANA =====`);
+              console.log(`🔍 [FAL AI INPUT] Model: ${modelName}`);
+              console.log(`🔍 [FAL AI INPUT] Full input object:`, JSON.stringify(falInput, null, 2));
+              console.log(`🔍 [FAL AI INPUT] Prompt length: ${nanoBananaPrompt.length} characters`);
+              console.log(`🔍 [FAL AI INPUT] Image URLs:`, imageUrls.map((url, i) => `${i + 1}. ${url}`));
+              console.log(`🔍 [FAL AI INPUT] Output format: ${falInput.output_format}`);
+              console.log(`🔍 [FAL AI INPUT] Number of images: ${falInput.num_images}`);
+              console.log(`🔍 [FAL AI INPUT] Sync mode: ${falInput.sync_mode}`);
+              console.log(`🔍 [FAL AI INPUT] ===== END INPUT =====\n`);
               
               console.log('🎯 [CHARACTER VARIATION API] FAL API input (editor model):', {
                 model: modelName,
@@ -1021,15 +1116,47 @@ RESPECT THE USER'S CREATIVE VISION - do not standardize or genericize their spec
                 timestamp: new Date().toISOString()
               });
               
+              console.log(`\n⏳ [FAL AI CALL] ===== STARTING FAL.SUBSCRIBE =====`);
+              console.log(`⏳ [FAL AI CALL] Timestamp: ${new Date().toISOString()}`);
+              console.log(`⏳ [FAL AI CALL] Model: ${modelName}`);
+              console.log(`⏳ [FAL AI CALL] Starting API call...`);
+              
               const result = await fal.subscribe(modelName, {
                 input: falInput,
                 logs: true,
                 onQueueUpdate: (update) => {
+                  console.log(`\n📊 [FAL AI PROGRESS] ===== QUEUE UPDATE =====`);
+                  console.log(`📊 [FAL AI PROGRESS] Status: ${update.status}`);
+                  console.log(`📊 [FAL AI PROGRESS] Timestamp: ${new Date().toISOString()}`);
                   if (update.status === "IN_PROGRESS") {
-                    console.log(`📊 [MODEL API] Generation progress for ${variation.angle}:`, update.logs?.map(log => log.message).join(', '));
+                    console.log(`📊 [FAL AI PROGRESS] Generation progress for ${variation.angle}:`, update.logs?.map(log => log.message).join(', '));
+                    console.log(`📊 [FAL AI PROGRESS] Logs:`, update.logs);
                   }
+                  if (update.status === "COMPLETED") {
+                    console.log(`📊 [FAL AI PROGRESS] ✅ Generation completed!`);
+                  }
+                  console.log(`📊 [FAL AI PROGRESS] ===== END QUEUE UPDATE =====\n`);
                 },
               });
+              
+              console.log(`\n✅ [FAL AI RESPONSE] ===== NANO BANANA RESPONSE =====`);
+              console.log(`✅ [FAL AI RESPONSE] API call successful!`);
+              console.log(`✅ [FAL AI RESPONSE] Timestamp: ${new Date().toISOString()}`);
+              console.log(`✅ [FAL AI RESPONSE] Full response object:`, JSON.stringify(result, null, 2));
+              console.log(`✅ [FAL AI RESPONSE] Response data:`, result.data);
+              console.log(`✅ [FAL AI RESPONSE] Images in response:`, result.data?.images?.length || 0);
+              if (result.data?.images) {
+                result.data.images.forEach((img: any, i: number) => {
+                  console.log(`✅ [FAL AI RESPONSE] Image ${i + 1}:`, {
+                    url: img.url,
+                    content_type: img.content_type,
+                    file_name: img.file_name,
+                    file_size: img.file_size
+                  });
+                });
+              }
+              console.log(`✅ [FAL AI RESPONSE] ===== END RESPONSE =====\n`);
+              
               console.log(`✅ [MODEL API] ${modelName} API call successful with official parameters!`);
               
               console.log(`✅ [CHARACTER COMBINATION] ${modelName} API call completed for ${variation.angle}`);
@@ -1193,10 +1320,31 @@ RESPECT THE USER'S CREATIVE VISION - do not standardize or genericize their spec
     } as CharacterVariationResponse);
 
   } catch (error) {
+    console.error('\n💥 ===== CRITICAL ERROR IN VARY-CHARACTER API =====');
     console.error('💥 Error in vary-character API:', error);
     console.error('💥 Error type:', typeof error);
     console.error('💥 Error name:', error instanceof Error ? error.name : 'Unknown');
     console.error('💥 Error message:', error instanceof Error ? error.message : String(error));
+    console.error('💥 Timestamp:', new Date().toISOString());
+    
+    // Enhanced error logging for debugging
+    if (error instanceof Error) {
+      console.error('💥 Full error stack:', error.stack);
+      
+      // Log additional error properties if they exist
+      if ('status' in error) {
+        console.error('💥 Error status:', (error as any).status);
+      }
+      if ('body' in error) {
+        console.error('💥 Error body:', JSON.stringify((error as any).body, null, 2));
+      }
+      if ('response' in error) {
+        console.error('💥 Error response:', (error as any).response);
+      }
+      if ('code' in error) {
+        console.error('💥 Error code:', (error as any).code);
+      }
+    }
     
     // Record failure for circuit breaker
     recordFailure();
@@ -1204,13 +1352,13 @@ RESPECT THE USER'S CREATIVE VISION - do not standardize or genericize their spec
     
     const successRate = ((apiStats.successfulRequests / apiStats.totalRequests) * 100).toFixed(1);
     console.log(`❌ Request failed. Success rate: ${successRate}% (${apiStats.successfulRequests}/${apiStats.totalRequests})`);
+    console.error('💥 ===== END CRITICAL ERROR =====\n');
     
     let errorMessage = 'An unexpected error occurred';
     let statusCode = 500;
     
     if (error instanceof Error) {
       errorMessage = error.message;
-      console.error('💥 Full error stack:', error.stack);
       
       // Provide more specific error messages for common failure scenarios
       if (error.message.includes('503 Service Unavailable') || error.message.includes('model is overloaded')) {
