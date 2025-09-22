@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { useAuth } from '@/contexts/AuthContext'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -35,13 +35,7 @@ export default function BillingPage() {
   const [actionLoading, setActionLoading] = useState<string | null>(null)
   const [message, setMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null)
 
-  useEffect(() => {
-    if (user) {
-      fetchBillingInfo()
-    }
-  }, [user])
-
-  const fetchBillingInfo = async () => {
+  const fetchBillingInfo = useCallback(async () => {
     try {
       // Get user profile
       const { data: profile } = await supabase
@@ -79,7 +73,13 @@ export default function BillingPage() {
     } finally {
       setLoading(false)
     }
-  }
+  }, [user])
+
+  useEffect(() => {
+    if (user) {
+      fetchBillingInfo()
+    }
+  }, [user, fetchBillingInfo])
 
   const handleManageBilling = async () => {
     if (!user) return
