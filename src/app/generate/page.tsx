@@ -6643,7 +6643,7 @@ export default function Home() {
             
             
         {/* Main Content Container - Centered and Unified */}
-        <div className="w-full max-w-6xl mx-auto px-3 lg:px-4 py-6 lg:py-8 lg:pt-16 flex flex-col items-center">
+        <div className="w-full max-w-6xl mx-auto px-3 lg:px-4 py-4 lg:py-8 lg:pt-16 flex flex-col items-center">
             
 
 
@@ -6682,8 +6682,8 @@ export default function Home() {
             )}
 
             {/* Mobile Generated Content Display */}
-            <div className="lg:hidden w-full max-w-4xl mx-auto mb-8">
-              <h2 className="text-lg font-bold text-white mb-4 text-center">New Variations</h2>
+            <div className="lg:hidden w-full max-w-4xl mx-auto mb-4">
+              <h2 className="text-lg font-bold text-white mb-3 text-center">New Variations</h2>
               
               {/* Horizontal Scrolling Variations */}
               {variations.length > 0 ? (
@@ -6792,7 +6792,7 @@ export default function Home() {
                   )}
                 </div>
               ) : (
-                <div className="w-full aspect-square max-w-md mx-auto bg-black bg-opacity-50 rounded-[30px] border border-gray-700 overflow-hidden">
+                <div className="w-full aspect-square max-w-sm mx-auto bg-black bg-opacity-50 rounded-[30px] border border-gray-700 overflow-hidden">
                   <div className="flex items-center justify-center h-full text-gray-400">
                     <div className="text-center">
                       <div className="text-4xl mb-2">🎨</div>
@@ -6802,68 +6802,6 @@ export default function Home() {
                 </div>
               )}
               
-              {/* Mobile Quick Shots and Generate Buttons */}
-              <div className="mt-6 space-y-3">
-                {/* Quick Shots Button - Only show when image is uploaded */}
-                {uploadedFiles.length > 0 && uploadedFiles.some(file => file.fileType === 'image') && (
-                  <button
-                    onClick={() => {
-                      setActivePresetTab('shot');
-                      setShowPresetModal(true);
-                    }}
-                    className="w-full py-3 px-4 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white rounded-lg font-medium transition-all duration-300 transform hover:scale-105 active:scale-95 flex items-center justify-center gap-2"
-                  >
-                    <Camera className="w-5 h-5" />
-                    Quick Shots
-                  </button>
-                )}
-                
-                {/* Halloween Me Button - Show when exactly 2 images are uploaded */}
-                {uploadedFiles.length === 2 && (
-                  <div className="mb-3">
-                    <button
-                      onClick={handleHalloweenMe}
-                      disabled={isGeneratingImages}
-                      className="w-full py-3 px-4 bg-gradient-to-r from-orange-600 to-red-600 hover:from-orange-700 hover:to-red-700 disabled:from-gray-600 disabled:to-gray-700 text-white rounded-lg font-medium transition-all duration-300 transform hover:scale-105 active:scale-95 disabled:scale-100 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-                    >
-                      {isGeneratingImages ? (
-                        <>
-                          <Loader2 className="w-5 h-5 animate-spin" />
-                          Creating...
-                        </>
-                      ) : (
-                        <>
-                          🎃 Halloween Me
-                        </>
-                      )}
-                    </button>
-                  </div>
-                )}
-
-                {/* Generate Buttons - Show when conditions are met */}
-                {uploadedFiles.length > 0 && prompt.trim() && generationMode && (
-                  <div className="space-y-3">
-                    {/* Main Generate Button */}
-                    <button
-                      onClick={handleCharacterVariation}
-                      disabled={isGeneratingImages}
-                      className="w-full py-3 px-4 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 disabled:from-gray-600 disabled:to-gray-700 text-white rounded-lg font-medium transition-all duration-300 transform hover:scale-105 active:scale-95 disabled:scale-100 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-                    >
-                      {isGeneratingImages ? (
-                        <>
-                          <Loader2 className="w-5 h-5 animate-spin" />
-                          Generating...
-                        </>
-                      ) : (
-                        <>
-                          <ArrowRight className="w-5 h-5" />
-                          Generate
-                        </>
-                      )}
-                    </button>
-                  </div>
-                )}
-              </div>
               
               {/* Additional Variations (if any) */}
               {variations.length > 1 && (
@@ -6922,8 +6860,8 @@ export default function Home() {
 
             {/* Processing items now appear in gallery instead of modal */}
 
-            {/* Mobile Floating Input - Progressive Disclosure Interface */}
-            <div className="mobile-chat-interface lg:hidden" data-input-area>
+            {/* Mobile Floating Input - Progressive Disclosure Interface - Moved much lower for better button visibility */}
+            <div className="mobile-chat-interface lg:hidden mt-16" data-input-area>
               
               {/* Initial State: Only Upload Button */}
               {uploadedFiles.length === 0 && (
@@ -6967,6 +6905,45 @@ export default function Home() {
                       </button>
                     </div>
                   </div>
+                </div>
+              )}
+
+              {/* Mobile Quick Shots and Halloween Me Buttons - Positioned above image input slots */}
+              {uploadedFiles.length > 0 && (
+                <div className="mt-4 space-y-3 mb-4">
+                  {/* Quick Shots Button - Only show when image is uploaded */}
+                  {uploadedFiles.some(file => file.fileType === 'image') && (
+                    <button
+                      onClick={() => {
+                        setActivePresetTab('shot');
+                        setShowPresetModal(true);
+                      }}
+                      className="w-full py-3 px-4 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white rounded-lg font-medium transition-all duration-300 transform hover:scale-105 active:scale-95 flex items-center justify-center gap-2"
+                    >
+                      <Camera className="w-5 h-5" />
+                      Quick Shots
+                    </button>
+                  )}
+                  
+                  {/* Halloween Me Button - Show when exactly 2 images are uploaded */}
+                  {uploadedFiles.length === 2 && (
+                    <button
+                      onClick={handleHalloweenMe}
+                      disabled={isGeneratingImages}
+                      className="w-full py-3 px-4 bg-gradient-to-r from-orange-600 to-red-600 hover:from-orange-700 hover:to-red-700 disabled:from-gray-600 disabled:to-gray-700 text-white rounded-lg font-medium transition-all duration-300 transform hover:scale-105 active:scale-95 disabled:scale-100 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                    >
+                      {isGeneratingImages ? (
+                        <>
+                          <Loader2 className="w-5 h-5 animate-spin" />
+                          Creating...
+                        </>
+                      ) : (
+                        <>
+                          🎃 Halloween Me
+                        </>
+                      )}
+                    </button>
+                  )}
                 </div>
               )}
 
