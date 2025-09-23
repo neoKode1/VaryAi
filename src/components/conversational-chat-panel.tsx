@@ -14,6 +14,20 @@ interface ChatMessage {
   };
 }
 
+interface ConversationState {
+  isWaitingForConfirmation: boolean;
+  pendingAction?: {
+    type: string;
+    prompt: string;
+    context: any;
+  };
+  sceneContext?: {
+    type?: string;
+    setting?: string;
+    style?: string;
+  };
+}
+
 interface ConversationalChatPanelProps {
   isOpen: boolean;
   onToggle: () => void;
@@ -43,6 +57,9 @@ export const ConversationalChatPanel: React.FC<ConversationalChatPanelProps> = (
   const [isListening, setIsListening] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
   const [voiceInputAvailable, setVoiceInputAvailable] = useState(false);
+  const [conversationState, setConversationState] = useState<ConversationState>({
+    isWaitingForConfirmation: false
+  });
   
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const recognitionRef = useRef<any>(null);
@@ -112,8 +129,78 @@ export const ConversationalChatPanel: React.FC<ConversationalChatPanelProps> = (
     }
   }, [isListening]);
 
-  const interpretCommand = useCallback(async (text: string): Promise<{ action?: string; data?: any; response: string }> => {
+  const interpretCommand = useCallback(async (text: string): Promise<{ action?: string; data?: any; response: string; needsConfirmation?: boolean; pendingAction?: any }> => {
     const lowerText = text.toLowerCase();
+    
+    // Handle confirmation responses
+    if (conversationState.isWaitingForConfirmation) {
+      if (lowerText.includes('yes') || lowerText.includes('yeah') || lowerText.includes('sure') || lowerText.includes('proceed')) {
+        if (conversationState.pendingAction) {
+          setConversationState(prev => ({ ...prev, isWaitingForConfirmation: false }));
+          return {
+            action: conversationState.pendingAction.type,
+            data: conversationState.pendingAction.context,
+            response: "Perfect! I'll generate that for you now.",
+            pendingAction: conversationState.pendingAction
+          };
+        }
+      } else if (lowerText.includes('no') || lowerText.includes('cancel') || lowerText.includes('stop')) {
+        setConversationState(prev => ({ ...prev, isWaitingForConfirmation: false, pendingAction: undefined }));
+        return {
+          response: "No problem! What would you like to try instead?"
+        };
+      }
+    }
+    
+    // Scene generation requests
+    if (lowerText.includes('scene') || lowerText.includes('scenes') || lowerText.includes('iterate') || 
+        lowerText.includes('generate') && (lowerText.includes('character') || lowerText.includes('this'))) {
+      
+      // Ask for scene details
+      if (!conversationState.sceneContext?.type) {
+        setConversationState(prev => ({ 
+          ...prev, 
+          sceneContext: { ...prev.sceneContext, type: 'scene' }
+        }));
+        return {
+          response: "Great! I'd love to help you create scenes for this character. What type of scene are you thinking? (e.g., action, dramatic, cinematic, outdoor, indoor, etc.)"
+        };
+      }
+      
+      // Ask for setting if we have type but not setting
+      if (conversationState.sceneContext.type && !conversationState.sceneContext.setting) {
+        const sceneType = text.trim();
+        setConversationState(prev => ({ 
+          ...prev, 
+          sceneContext: { ...prev.sceneContext, setting: sceneType }
+        }));
+        return {
+          response: `Nice! ${sceneType} scenes are great. What kind of setting or environment would you like? (e.g., forest, city, studio, beach, etc.)`
+        };
+      }
+      
+      // Propose specific generation
+      if (conversationState.sceneContext.type && conversationState.sceneContext.setting) {
+        const sceneType = conversationState.sceneContext.setting;
+        const setting = text.trim();
+        const proposedPrompt = `Close-up shots of this character in a ${sceneType} scene, ${setting} setting, cinematic lighting, professional photography`;
+        
+        setConversationState(prev => ({ 
+          ...prev, 
+          isWaitingForConfirmation: true,
+          pendingAction: {
+            type: 'generate',
+            prompt: proposedPrompt,
+            context: { customPrompt: proposedPrompt }
+          }
+        }));
+        
+        return {
+          response: `Perfect! How about some close-up shots of this character in a ${sceneType} scene with a ${setting} setting? Should I proceed with generating this?`,
+          needsConfirmation: true
+        };
+      }
+    }
     
     // Quick detection for obvious commands
     if (lowerText.includes('quick shot') || lowerText.includes('different angle') || 
@@ -135,31 +222,14 @@ export const ConversationalChatPanel: React.FC<ConversationalChatPanelProps> = (
       };
     }
     
-    // Generate commands
-    if (lowerText.includes('generate') || lowerText.includes('create') || 
-        lowerText.includes('make') || lowerText.includes('produce')) {
-      return {
-        action: 'generate',
-        response: "I'll send this prompt to the generation system for you!"
-      };
-    }
-    
-    // Preset commands
-    if (lowerText.includes('preset') || lowerText.includes('style') || 
-        lowerText.includes('cinematic') || lowerText.includes('artistic')) {
-      return {
-        action: 'preset',
-        response: "I'll help you select the best preset for your needs!"
-      };
-    }
-    
     // For more complex or ambiguous requests, use Claude API
     try {
       const context = {
         uploadedFiles: uploadedFiles.length,
         hasImages: uploadedFiles.some(file => file.fileType === 'image'),
         hasVideos: uploadedFiles.some(file => file.fileType === 'video'),
-        isGenerating
+        isGenerating,
+        conversationState
       };
 
       const response = await fetch('/api/claude-chat', {
@@ -187,7 +257,7 @@ export const ConversationalChatPanel: React.FC<ConversationalChatPanelProps> = (
     return {
       response: "I understand you want to generate something. I'll send this prompt to the system for you!"
     };
-  }, [uploadedFiles, isGenerating]);
+  }, [uploadedFiles, isGenerating, conversationState]);
 
   const handleSendMessage = useCallback(async (text?: string) => {
     const messageText = text || inputText.trim();
@@ -211,10 +281,15 @@ export const ConversationalChatPanel: React.FC<ConversationalChatPanelProps> = (
       // Execute action if needed
       if (interpretation.action) {
         setTimeout(() => {
-          onExecuteAction(interpretation.action!, interpretation.data);
+          if (interpretation.pendingAction?.context?.customPrompt) {
+            // Send custom prompt to main input
+            onSendPrompt(interpretation.pendingAction.context.customPrompt);
+          } else {
+            onExecuteAction(interpretation.action!, interpretation.data);
+          }
         }, 1000);
-      } else {
-        // Send as regular prompt
+      } else if (!interpretation.needsConfirmation) {
+        // Send as regular prompt only if not waiting for confirmation
         onSendPrompt(messageText);
       }
     } catch (error) {
@@ -245,7 +320,15 @@ export const ConversationalChatPanel: React.FC<ConversationalChatPanelProps> = (
   }
 
   return (
-    <div className="hidden lg:block fixed left-0 top-0 h-screen w-80 bg-charcoal bg-opacity-95 backdrop-blur-md border-r border-border-gray border-opacity-30 z-30 flex flex-col">
+    <>
+      {/* Backdrop for click-away functionality */}
+      <div 
+        className="hidden lg:block fixed inset-0 bg-black bg-opacity-20 z-20"
+        onClick={onToggle}
+      />
+      
+      {/* Chat Panel */}
+      <div className="hidden lg:block fixed left-0 top-0 h-screen w-80 bg-charcoal bg-opacity-95 backdrop-blur-md border-r border-border-gray border-opacity-30 z-30 flex flex-col">
       {/* Header */}
       <div className="flex items-center justify-between p-4 border-b border-border-gray border-opacity-30">
         <div className="flex items-center gap-2">
@@ -365,5 +448,6 @@ export const ConversationalChatPanel: React.FC<ConversationalChatPanelProps> = (
         </div>
       </div>
     </div>
+    </>
   );
 };

@@ -21,6 +21,7 @@ export async function POST(request: NextRequest) {
 3. **Character Variations**: Different poses, angles, and styles
 4. **Video Generation**: Creating videos from images or text
 5. **Preset Selection**: Helping choose the right style or preset
+6. **Scene Generation**: Creating custom scenes and environments for characters
 
 When users ask for things like:
 - "Give me different angles" → Quick Shots
@@ -29,6 +30,12 @@ When users ask for things like:
 - "Make it spooky" → Halloween Me
 - "Generate a video" → Video generation
 - "Create variations" → Character variations
+- "Generate scenes" → Ask for scene type and setting details
+
+For scene generation, ask clarifying questions about:
+- Scene type (action, dramatic, cinematic, etc.)
+- Setting/environment (forest, city, studio, etc.)
+- Style preferences
 
 Respond naturally and helpfully. If the user's intent is clear, suggest the appropriate action. Keep responses concise and friendly.`;
 
