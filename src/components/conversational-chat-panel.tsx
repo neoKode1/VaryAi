@@ -61,6 +61,11 @@ export const ConversationalChatPanel: React.FC<ConversationalChatPanelProps> = (
     isWaitingForConfirmation: false
   });
   
+  // Dragging state
+  const [isDragging, setIsDragging] = useState(false);
+  const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
+  const [modalPosition, setModalPosition] = useState({ x: 0, y: 0 });
+  
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const recognitionRef = useRef<any>(null);
 
@@ -307,6 +312,53 @@ export const ConversationalChatPanel: React.FC<ConversationalChatPanelProps> = (
     }
   }, [handleSendMessage]);
 
+  // Drag handlers
+  const handleMouseDown = useCallback((e: React.MouseEvent) => {
+    if (e.target === e.currentTarget || (e.target as HTMLElement).closest('.drag-handle')) {
+      setIsDragging(true);
+      
+      // If modal hasn't been dragged yet, it's centered
+      if (!modalPosition.x && !modalPosition.y) {
+        // Modal is centered, so we need to account for the transform
+        setDragOffset({
+          x: e.clientX - (window.innerWidth / 2),
+          y: e.clientY - (window.innerHeight / 2)
+        });
+      } else {
+        // Modal has been dragged, use actual position
+        setDragOffset({
+          x: e.clientX - modalPosition.x,
+          y: e.clientY - modalPosition.y
+        });
+      }
+    }
+  }, [modalPosition]);
+
+  const handleMouseMove = useCallback((e: MouseEvent) => {
+    if (isDragging) {
+      setModalPosition({
+        x: e.clientX - dragOffset.x,
+        y: e.clientY - dragOffset.y
+      });
+    }
+  }, [isDragging, dragOffset]);
+
+  const handleMouseUp = useCallback(() => {
+    setIsDragging(false);
+  }, []);
+
+  // Add global mouse event listeners for dragging
+  useEffect(() => {
+    if (isDragging) {
+      document.addEventListener('mousemove', handleMouseMove);
+      document.addEventListener('mouseup', handleMouseUp);
+      return () => {
+        document.removeEventListener('mousemove', handleMouseMove);
+        document.removeEventListener('mouseup', handleMouseUp);
+      };
+    }
+  }, [isDragging, handleMouseMove, handleMouseUp]);
+
   if (!isOpen) {
     return (
       <button
@@ -323,14 +375,25 @@ export const ConversationalChatPanel: React.FC<ConversationalChatPanelProps> = (
     <>
       {/* Backdrop for click-away functionality */}
       <div 
-        className="hidden lg:block fixed inset-0 bg-black bg-opacity-20 z-20"
+        className="hidden lg:block fixed inset-0 bg-black bg-opacity-50 z-20"
         onClick={onToggle}
       />
       
-      {/* Chat Panel */}
-      <div className="hidden lg:block fixed left-0 top-0 h-screen w-80 bg-charcoal bg-opacity-95 backdrop-blur-md border-r border-border-gray border-opacity-30 z-30 flex flex-col">
-      {/* Header */}
-      <div className="flex items-center justify-between p-4 border-b border-border-gray border-opacity-30">
+      {/* Chat Modal */}
+      <div 
+        className="hidden lg:block fixed w-96 h-[600px] bg-charcoal bg-opacity-95 backdrop-blur-md border border-border-gray border-opacity-30 rounded-lg shadow-2xl z-30 flex flex-col"
+        style={{
+          left: modalPosition.x || '50%',
+          top: modalPosition.y || '50%',
+          transform: modalPosition.x ? 'none' : 'translate(-50%, -50%)',
+          cursor: isDragging ? 'grabbing' : 'default'
+        }}
+      >
+      {/* Header - Draggable */}
+      <div 
+        className="flex items-center justify-between p-4 border-b border-border-gray border-opacity-30 drag-handle cursor-grab select-none"
+        onMouseDown={handleMouseDown}
+      >
         <div className="flex items-center gap-2">
           <Bot className="w-5 h-5 text-purple-400" />
           <h3 className="text-light-gray font-semibold">AI Assistant</h3>
@@ -344,7 +407,7 @@ export const ConversationalChatPanel: React.FC<ConversationalChatPanelProps> = (
       </div>
 
       {/* Messages */}
-      <div className="flex-1 overflow-y-auto p-4 space-y-4 scrollbar-thin scrollbar-thumb-gray-600 scrollbar-track-gray-800">
+      <div className="flex-1 overflow-y-auto p-4 space-y-4" style={{ maxHeight: '400px' }}>
         {messages.map((message) => (
           <div
             key={message.id}
