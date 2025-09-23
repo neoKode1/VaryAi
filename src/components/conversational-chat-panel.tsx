@@ -245,7 +245,7 @@ export const ConversationalChatPanel: React.FC<ConversationalChatPanelProps> = (
   }
 
   return (
-    <div className="hidden lg:block fixed left-0 top-0 h-full w-80 bg-charcoal bg-opacity-95 backdrop-blur-md border-r border-border-gray border-opacity-30 z-30 flex flex-col">
+    <div className="hidden lg:block fixed left-0 top-0 h-screen w-80 bg-charcoal bg-opacity-95 backdrop-blur-md border-r border-border-gray border-opacity-30 z-30 flex flex-col">
       {/* Header */}
       <div className="flex items-center justify-between p-4 border-b border-border-gray border-opacity-30">
         <div className="flex items-center gap-2">
@@ -261,7 +261,7 @@ export const ConversationalChatPanel: React.FC<ConversationalChatPanelProps> = (
       </div>
 
       {/* Messages */}
-      <div className="flex-1 overflow-y-auto p-4 space-y-4">
+      <div className="flex-1 overflow-y-auto p-4 space-y-4 scrollbar-thin scrollbar-thumb-gray-600 scrollbar-track-gray-800">
         {messages.map((message) => (
           <div
             key={message.id}
@@ -271,7 +271,7 @@ export const ConversationalChatPanel: React.FC<ConversationalChatPanelProps> = (
               className={`max-w-[80%] p-3 rounded-lg ${
                 message.type === 'user'
                   ? 'bg-gradient-to-r from-purple-600 to-pink-600 text-white'
-                  : 'bg-gray-700 text-light-gray'
+                  : 'bg-gray-700 text-white'
               }`}
             >
               <div className="flex items-start gap-2">
@@ -292,7 +292,7 @@ export const ConversationalChatPanel: React.FC<ConversationalChatPanelProps> = (
         
         {isProcessing && (
           <div className="flex justify-start">
-            <div className="bg-gray-700 text-light-gray p-3 rounded-lg">
+            <div className="bg-gray-700 text-white p-3 rounded-lg">
               <div className="flex items-center gap-2">
                 <Loader2 className="w-4 h-4 animate-spin text-purple-400" />
                 <span className="text-sm">Processing...</span>
@@ -305,7 +305,7 @@ export const ConversationalChatPanel: React.FC<ConversationalChatPanelProps> = (
       </div>
 
       {/* Input Area */}
-      <div className="p-4 border-t border-border-gray border-opacity-30">
+      <div className="p-4 border-t border-border-gray border-opacity-30 flex-shrink-0">
         <div className="flex gap-2">
           <div className="flex-1 relative">
             <textarea
@@ -313,7 +313,7 @@ export const ConversationalChatPanel: React.FC<ConversationalChatPanelProps> = (
               onChange={(e) => setInputText(e.target.value)}
               onKeyPress={handleKeyPress}
               placeholder="Type a message or use voice..."
-              className="w-full p-3 bg-gray-800 border border-border-gray border-opacity-30 rounded-lg text-light-gray placeholder-accent-gray resize-none focus:outline-none focus:border-purple-500 focus:ring-1 focus:ring-purple-500"
+              className="w-full p-3 bg-gray-800 border border-border-gray border-opacity-30 rounded-lg text-white placeholder-gray-400 resize-none focus:outline-none focus:border-purple-500 focus:ring-1 focus:ring-purple-500"
               rows={2}
               disabled={isGenerating}
             />
@@ -347,7 +347,7 @@ export const ConversationalChatPanel: React.FC<ConversationalChatPanelProps> = (
         </div>
         
         {/* Status indicators */}
-        <div className="mt-2 flex items-center justify-between text-xs text-accent-gray">
+        <div className="mt-2 flex items-center justify-between text-xs text-gray-300">
           <div className="flex items-center gap-4">
             {voiceInputAvailable && (
               <span className="flex items-center gap-1">
