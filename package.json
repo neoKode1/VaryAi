@@ -16,6 +16,7 @@
   "description": "AI-powered character angle variation generator using Google Gemini",
   "private": true,
   "dependencies": {
+    "@anthropic-ai/sdk": "^0.63.0",
     "@fal-ai/client": "^1.6.2",
     "@google/generative-ai": "^0.24.1",
     "@radix-ui/react-label": "^2.1.7",

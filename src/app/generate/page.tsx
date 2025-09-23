@@ -2,6 +2,7 @@
 
 import { useState, useCallback, useEffect, useMemo, useRef } from 'react';
 import { Upload, Download, Loader2, RotateCcw, Camera, Sparkles, Images, X, Trash2, Plus, ChevronLeft, ChevronRight, ChevronDown, ChevronUp, Edit, MessageCircle, HelpCircle, ArrowRight, ArrowUp, FolderOpen, Grid3X3, User, Settings, Send } from 'lucide-react';
+import { ConversationalChatPanel } from '@/components/conversational-chat-panel';
 import { useRouter, usePathname } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
 import { useCreditCheck } from '@/hooks/useCreditCheck';
@@ -940,6 +941,9 @@ export default function Home() {
   const [showGallery, setShowGallery] = useState(false);
   const [galleryFilter, setGalleryFilter] = useState<'all' | 'images' | 'videos'>('all');
   
+  // Conversational AI chat panel state
+  const [showChatPanel, setShowChatPanel] = useState(false);
+  
   // Processing items that appear in gallery
   const [processingItems, setProcessingItems] = useState<ProcessingItem[]>([]);
   
@@ -1033,6 +1037,7 @@ export default function Home() {
     setShowPresetModal(false);
     setActivePresetTab(null);
   }, [prompt, presetCount]);
+
 
   // Reset preset count when prompt is manually cleared
   useEffect(() => {
@@ -3493,6 +3498,7 @@ export default function Home() {
       });
     }
   };
+
 
   const handleCharacterVariation = async () => {
     // Check if user can generate
@@ -6296,6 +6302,42 @@ export default function Home() {
     }
   };
 
+  // Chat panel handlers - Desktop only
+  const handleChatToggle = useCallback(() => {
+    setShowChatPanel(prev => !prev);
+  }, []);
+
+  const handleChatExecuteAction = useCallback((action: string, data?: any) => {
+    switch (action) {
+      case 'quick_shots':
+        setActivePresetTab('shot');
+        setShowPresetModal(true);
+        break;
+      case 'halloween_me':
+        handleHalloweenMe();
+        break;
+      case 'generate':
+        // Trigger generation based on current state
+        if (uploadedFiles.length === 0) {
+          handleTextToImage();
+        } else if (uploadedFiles.some(file => file.fileType === 'video')) {
+          handleRunwayVideoEditing();
+        } else {
+          handleModelGeneration();
+        }
+        break;
+      case 'preset':
+        setShowPresetModal(true);
+        break;
+      default:
+        console.log('Unknown action:', action);
+    }
+  }, [handleHalloweenMe, handleTextToImage, handleRunwayVideoEditing, handleModelGeneration]);
+
+  const handleChatSendPrompt = useCallback((chatPrompt: string) => {
+    setPrompt(chatPrompt);
+  }, []);
+
   return (
     <div className="h-screen bg-black relative overflow-hidden">
 
@@ -6629,7 +6671,7 @@ export default function Home() {
       
       <div className="relative z-10 flex flex-col lg:flex-row">
         {/* Main Content */}
-        <div className={`transition-all duration-300 w-full ${showGallery ? 'lg:pr-0' : 'lg:ml-16'} flex flex-col items-center`}>
+        <div className={`transition-all duration-300 w-full ${showGallery ? 'lg:pr-0' : 'lg:ml-16'} ${showChatPanel ? 'lg:ml-80' : 'lg:ml-16'} flex flex-col items-center`}>
           <div className="w-full max-w-6xl mx-auto px-4 py-8 lg:px-8">
             {/* Usage Limit Banner */}
             <UsageLimitBanner 
@@ -9365,6 +9407,16 @@ export default function Home() {
       <SubscriptionModal
         isOpen={showSubscriptionModal}
         onClose={() => setShowSubscriptionModal(false)}
+      />
+
+      {/* Conversational AI Chat Panel */}
+      <ConversationalChatPanel
+        isOpen={showChatPanel}
+        onToggle={handleChatToggle}
+        onExecuteAction={handleChatExecuteAction}
+        onSendPrompt={handleChatSendPrompt}
+        uploadedFiles={uploadedFiles}
+        isGenerating={processing.isProcessing}
       />
 
       {/* Mobile Bottom Navigation - REMOVED for cleaner UX */}
