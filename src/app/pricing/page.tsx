@@ -5,7 +5,8 @@ import { useAuth } from '@/contexts/AuthContext'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { Check, Zap, Crown, Star } from 'lucide-react'
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog'
+import { Check, Zap, Crown, Star, X, Image, Video, Info } from 'lucide-react'
 import { createStripeService } from '@/lib/stripeService'
 import { supabase } from '@/lib/supabase'
 
@@ -15,6 +16,7 @@ const pricingPlans = [
     price: '$0',
     period: 'forever',
     description: 'Perfect for getting started',
+    credits: 5, // 5 free generations
     features: [
       '5 generations per month',
       'Basic models access',
@@ -30,6 +32,7 @@ const pricingPlans = [
     price: '$7.50',
     period: 'week',
     description: 'Great for casual creators',
+    credits: 150,
     features: [
       '150 credits per week',
       'All image models',
@@ -46,6 +49,7 @@ const pricingPlans = [
     price: '$14.99',
     period: 'month',
     description: 'For power users and professionals',
+    credits: 375,
     features: [
       '375 credits per month',
       'All models (image + video)',
@@ -84,10 +88,32 @@ const creditPacks = [
   }
 ]
 
+// Model cost breakdown (1 credit = $0.04)
+const modelCosts = {
+  basic: { cost: 1, name: 'Basic Models', models: ['Nano Banana', 'Runway T2I', 'MiniMax 2.0', 'Kling 2.1'] },
+  premium: { cost: 4, name: 'Premium Models', models: ['VEO3 Fast', 'Runway Video'] },
+  ultra: { cost: 63, name: 'Ultra-Premium Models', models: ['Seedance Pro'] }
+}
+
+// Calculate what users can generate with their credits
+const calculateGenerationBreakdown = (credits: number) => {
+  return {
+    basicImages: Math.floor(credits / modelCosts.basic.cost),
+    premiumVideos: Math.floor(credits / modelCosts.premium.cost),
+    ultraVideos: Math.floor(credits / modelCosts.ultra.cost),
+    mixed: {
+      basicImages: Math.floor(credits * 0.7 / modelCosts.basic.cost),
+      premiumVideos: Math.floor(credits * 0.3 / modelCosts.premium.cost)
+    }
+  }
+}
+
 export default function PricingPage() {
   const { user, session } = useAuth()
   const [loading, setLoading] = useState<string | null>(null)
   const [currentTier, setCurrentTier] = useState<string>('free')
+  const [selectedPlan, setSelectedPlan] = useState<any>(null)
+  const [showModal, setShowModal] = useState(false)
 
   useEffect(() => {
     if (user) {
@@ -221,6 +247,21 @@ export default function PricingPage() {
     }
   }
 
+  const handlePlanClick = (plan: any) => {
+    setSelectedPlan(plan)
+    setShowModal(true)
+  }
+
+  const handleCreditPackClick = (pack: any) => {
+    setSelectedPlan(pack)
+    setShowModal(true)
+  }
+
+  const closeModal = () => {
+    setShowModal(false)
+    setSelectedPlan(null)
+  }
+
   return (
     <div className="min-h-screen" style={{ backgroundColor: 'oklch(21% 0.034 264.665)' }}>
       <div className="container mx-auto px-4 py-16">
@@ -247,9 +288,10 @@ export default function PricingPage() {
               return (
                 <Card 
                   key={plan.tier}
-                  className={`relative bg-white/10 border-white/20 backdrop-blur-sm ${
+                  className={`relative bg-white/10 border-white/20 backdrop-blur-sm cursor-pointer hover:bg-white/15 transition-all duration-200 ${
                     plan.popular ? 'ring-2 ring-purple-500 scale-105' : ''
                   } ${isCurrentPlan ? 'ring-2 ring-green-500' : ''}`}
+                  onClick={() => handlePlanClick(plan)}
                 >
                   {plan.popular && (
                     <div className="absolute -top-3 left-1/2 transform -translate-x-1/2">
@@ -328,9 +370,10 @@ export default function PricingPage() {
             {creditPacks.map((pack) => (
               <Card 
                 key={pack.name}
-                className={`bg-white/10 border-white/20 backdrop-blur-sm ${
+                className={`bg-white/10 border-white/20 backdrop-blur-sm cursor-pointer hover:bg-white/15 transition-all duration-200 ${
                   pack.popular ? 'ring-2 ring-purple-500 scale-105' : ''
                 }`}
+                onClick={() => handleCreditPackClick(pack)}
               >
                 {pack.popular && (
                   <div className="absolute -top-3 left-1/2 transform -translate-x-1/2">
@@ -418,6 +461,193 @@ export default function PricingPage() {
             </Card>
           </div>
         </div>
+
+        {/* Detailed Plan Modal */}
+        <Dialog open={showModal} onOpenChange={setShowModal}>
+          <DialogContent className="max-w-2xl bg-gray-900 border-gray-700 text-white">
+            <DialogHeader>
+              <div className="flex items-center justify-between">
+                <div>
+                  <DialogTitle className="text-2xl font-bold text-white">
+                    {selectedPlan?.name} - Detailed Breakdown
+                  </DialogTitle>
+                  <DialogDescription className="text-gray-300 mt-2">
+                    {selectedPlan?.description}
+                  </DialogDescription>
+                </div>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={closeModal}
+                  className="text-gray-400 hover:text-white"
+                >
+                  <X className="h-4 w-4" />
+                </Button>
+              </div>
+            </DialogHeader>
+
+            {selectedPlan && (
+              <div className="space-y-6">
+                {/* Price and Credits */}
+                <div className="bg-gray-800 rounded-lg p-4">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <h3 className="text-xl font-semibold text-white">
+                        {selectedPlan.price}
+                        {selectedPlan.period && `/${selectedPlan.period}`}
+                      </h3>
+                      {selectedPlan.credits && (
+                        <p className="text-gray-300">
+                          {selectedPlan.credits} credits included
+                        </p>
+                      )}
+                    </div>
+                    <div className="text-right">
+                      {selectedPlan.credits ? (
+                        <p className="text-sm text-gray-400">
+                          ${(parseFloat(selectedPlan.price.replace('$', '')) / selectedPlan.credits).toFixed(4)} per credit
+                        </p>
+                      ) : (
+                        <p className="text-sm text-gray-400">
+                          {selectedPlan.name === 'Free' ? 'No cost' : 'Subscription plan'}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Generation Breakdown */}
+                {selectedPlan.credits && (
+                  <div className="space-y-4">
+                    <h4 className="text-lg font-semibold text-white flex items-center">
+                      <Info className="h-5 w-5 mr-2" />
+                      What You Can Generate
+                    </h4>
+                    
+                    {(() => {
+                      const breakdown = calculateGenerationBreakdown(selectedPlan.credits)
+                      return (
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          {/* Basic Images Only */}
+                          <div className="bg-gray-800 rounded-lg p-4">
+                            <h5 className="font-semibold text-white mb-2 flex items-center">
+                              <Image className="h-4 w-4 mr-2" />
+                              Basic Images Only
+                            </h5>
+                            <p className="text-2xl font-bold text-green-400">
+                              {breakdown.basicImages}
+                            </p>
+                            <p className="text-sm text-gray-300">
+                              {modelCosts.basic.models.join(', ')}
+                            </p>
+                          </div>
+
+                          {/* Premium Videos Only */}
+                          <div className="bg-gray-800 rounded-lg p-4">
+                            <h5 className="font-semibold text-white mb-2 flex items-center">
+                              <Video className="h-4 w-4 mr-2" />
+                              Premium Videos Only
+                            </h5>
+                            <p className="text-2xl font-bold text-blue-400">
+                              {breakdown.premiumVideos}
+                            </p>
+                            <p className="text-sm text-gray-300">
+                              {modelCosts.premium.models.join(', ')}
+                            </p>
+                          </div>
+
+                          {/* Mixed Usage */}
+                          <div className="bg-gray-800 rounded-lg p-4 md:col-span-2">
+                            <h5 className="font-semibold text-white mb-2">
+                              Mixed Usage (Recommended)
+                            </h5>
+                            <div className="grid grid-cols-2 gap-4">
+                              <div>
+                                <p className="text-lg font-bold text-green-400">
+                                  {breakdown.mixed.basicImages} Images
+                                </p>
+                                <p className="text-xs text-gray-400">70% of credits</p>
+                              </div>
+                              <div>
+                                <p className="text-lg font-bold text-blue-400">
+                                  {breakdown.mixed.premiumVideos} Videos
+                                </p>
+                                <p className="text-xs text-gray-400">30% of credits</p>
+                              </div>
+                            </div>
+                          </div>
+
+                          {/* Ultra Premium (if applicable) */}
+                          {breakdown.ultraVideos > 0 && (
+                            <div className="bg-gray-800 rounded-lg p-4 md:col-span-2">
+                              <h5 className="font-semibold text-white mb-2">
+                                Ultra-Premium Videos
+                              </h5>
+                              <p className="text-2xl font-bold text-purple-400">
+                                {breakdown.ultraVideos}
+                              </p>
+                              <p className="text-sm text-gray-300">
+                                {modelCosts.ultra.models.join(', ')}
+                              </p>
+                            </div>
+                          )}
+                        </div>
+                      )
+                    })()}
+                  </div>
+                )}
+
+                {/* Features List */}
+                <div className="space-y-4">
+                  <h4 className="text-lg font-semibold text-white">What&apos;s Included</h4>
+                  <ul className="space-y-2">
+                    {selectedPlan.features?.map((feature: string, index: number) => (
+                      <li key={index} className="flex items-center space-x-3">
+                        <Check className="h-5 w-5 text-green-400 flex-shrink-0" />
+                        <span className="text-gray-300">{feature}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+
+                {/* Action Buttons */}
+                <div className="flex space-x-4 pt-4">
+                  <Button
+                    onClick={() => {
+                      if (selectedPlan.credits) {
+                        handleCreditPurchase(selectedPlan.name)
+                      } else {
+                        handleSubscribe(selectedPlan.tier)
+                      }
+                      closeModal()
+                    }}
+                    disabled={loading === selectedPlan.tier || loading === selectedPlan.name}
+                    className={`flex-1 ${
+                      selectedPlan.popular 
+                        ? 'bg-purple-600 hover:bg-purple-700' 
+                        : 'bg-white/10 hover:bg-white/20 border border-white/20'
+                    } text-white`}
+                  >
+                    {loading === selectedPlan.tier || loading === selectedPlan.name ? (
+                      'Processing...'
+                    ) : selectedPlan.credits ? (
+                      'Purchase Credits'
+                    ) : (
+                      `Get ${selectedPlan.name}`
+                    )}
+                  </Button>
+                  <Button
+                    variant="outline"
+                    onClick={closeModal}
+                    className="border-gray-600 text-gray-300 hover:bg-gray-800"
+                  >
+                    Close
+                  </Button>
+                </div>
+              </div>
+            )}
+          </DialogContent>
+        </Dialog>
       </div>
     </div>
   )
