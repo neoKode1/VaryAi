@@ -46,10 +46,13 @@ type GenerationMode =
   | 'text2video-zero-i2v'
   // Lower-Tier Image-to-Video Models ($0.10)
   | 'wan-v2-2-a14b-i2v-lora'
+  | 'wan-25-preview-image-to-video'
+  | 'kling-video-v2-5-turbo-pro-image-to-video'
   | 'cogvideo-i2v'
   | 'zeroscope-t2v'
   | 'kling-ai-avatar'
   | 'gemini-25-flash-image-edit'
+  | 'qwen-image-edit-plus'
   // Image Resizing Models
   | 'luma-photon-reframe';
 import AnimatedError from '@/components/AnimatedError';
@@ -1210,10 +1213,13 @@ export default function Home() {
       'text2video-zero-i2v': 40, // 40 seconds for Text2Video Zero
       // Lower-Tier Image-to-Video Models
       'wan-v2-2-a14b-i2v-lora': 50, // 50 seconds for Wan V2.2 LoRA
+      'wan-25-preview-image-to-video': 50, // 50 seconds for WAN-25 Preview
+      'kling-video-v2-5-turbo-pro-image-to-video': 60, // 60 seconds for Kling Video V2.5 Turbo Pro
       'cogvideo-i2v': 50, // 50 seconds for CogVideo I2V
       'zeroscope-t2v': 50, // 50 seconds for Zeroscope T2V
       'kling-ai-avatar': 600, // 10 minutes for Kling AI Avatar (can take 2-20 minutes)
       'gemini-25-flash-image-edit': 20, // 20 seconds for Gemini 2.5 Flash Image Edit
+      'qwen-image-edit-plus': 30, // 30 seconds for Qwen Image Edit Plus
       'luma-photon-reframe': 45 // 45 seconds for Luma Photon Reframe
     };
     return timeEstimates[mode] || 30;
@@ -1413,6 +1419,7 @@ export default function Home() {
       modes.push('fal-ai/bytedance/seedream/v4/edit'); // Seedream 4 Edit
       modes.push('bytedance/seedream-4'); // Seedream 4
       modes.push('gemini-25-flash-image-edit'); // Gemini 2.5 Flash Image Edit
+      modes.push('qwen-image-edit-plus'); // Qwen Image Edit Plus
       modes.push('luma-photon-reframe'); // Luma Photon Reframe for image resizing
       } else if (contentMode === 'video') {
         // VIDEO MODE: Only show image-to-video models
@@ -1435,6 +1442,7 @@ export default function Home() {
       modes.push('fal-ai/bytedance/seedream/v4/edit'); // Seedream 4 Edit
       modes.push('bytedance/seedream-4'); // Seedream 4
       modes.push('gemini-25-flash-image-edit'); // Gemini Flash Edit for character combination
+      modes.push('qwen-image-edit-plus'); // Qwen Image Edit Plus for character combination
       } else if (contentMode === 'video') {
         // VIDEO MODE: Show EndFrame mode for 2 images
         modes.push('minimax-2.0'); // EndFrame mode for 2 images
@@ -1459,6 +1467,7 @@ export default function Home() {
       'fal-ai/bytedance/seedream/v4/edit': 'Seedream 4 Edit',
       'bytedance/seedream-4': 'Seedream 4',
       'gemini-25-flash-image-edit': 'Gemini Flash Edit',
+      'qwen-image-edit-plus': 'Qwen Image Edit Plus',
       'luma-photon-reframe': 'Luma Photon Reframe',
             'kling-ai-avatar': 'Kling AI Avatar (2-60 min)',
       // Mid-Tier Image-to-Video Models
@@ -1468,6 +1477,8 @@ export default function Home() {
       'text2video-zero-i2v': 'Text2Video Zero',
       // Lower-Tier Image-to-Video Models
       'wan-v2-2-a14b-i2v-lora': 'Wan V2.2 LoRA',
+      'wan-25-preview-image-to-video': 'WAN-25 Preview',
+      'kling-video-v2-5-turbo-pro-image-to-video': 'Kling Video V2.5 Turbo Pro',
       'cogvideo-i2v': 'CogVideo I2V',
       'zeroscope-t2v': 'Zeroscope T2V',
       'minimax-2.0': 'MiniMax End Frame',
@@ -1758,6 +1769,8 @@ export default function Home() {
         generationMode === 'modelscope-i2v' ||
         generationMode === 'text2video-zero-i2v' ||
         generationMode === 'wan-v2-2-a14b-i2v-lora' ||
+        generationMode === 'wan-25-preview-image-to-video' ||
+        generationMode === 'kling-video-v2-5-turbo-pro-image-to-video' ||
         generationMode === 'cogvideo-i2v' ||
         generationMode === 'zeroscope-t2v' ||
         generationMode === 'runway-video' ||
@@ -1775,6 +1788,7 @@ export default function Home() {
         generationMode === 'bytedance/seedream-4' ||
         generationMode === 'runway-t2i' ||
         generationMode === 'gemini-25-flash-image-edit' ||
+        generationMode === 'qwen-image-edit-plus' ||
         generationMode === 'luma-photon-reframe'
       );
       
@@ -3261,6 +3275,8 @@ export default function Home() {
       generationMode === 'modelscope-i2v' ||
       generationMode === 'text2video-zero-i2v' ||
       generationMode === 'wan-v2-2-a14b-i2v-lora' ||
+      generationMode === 'wan-25-preview-image-to-video' ||
+      generationMode === 'kling-video-v2-5-turbo-pro-image-to-video' ||
       generationMode === 'cogvideo-i2v' ||
       generationMode === 'zeroscope-t2v'
     )) {
@@ -3292,6 +3308,9 @@ export default function Home() {
         await handleSeedream4Generation();
         break;
       case 'gemini-25-flash-image-edit':
+        await handleCharacterVariation(); // Use the same handler as nano-banana since it's also character variation
+        break;
+      case 'qwen-image-edit-plus':
         await handleCharacterVariation(); // Use the same handler as nano-banana since it's also character variation
         break;
       case 'luma-photon-reframe':

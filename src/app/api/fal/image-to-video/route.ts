@@ -42,6 +42,16 @@ const MODEL_CONFIGS = {
     endpoint: 'fal-ai/wan-v2-2-a14b-image-to-video-lora',
     maxDuration: 5,
     supportedFormats: ['mp4']
+  },
+  'wan-25-preview-image-to-video': {
+    endpoint: 'fal-ai/wan-25-preview/image-to-video',
+    maxDuration: 5,
+    supportedFormats: ['mp4']
+  },
+  'kling-video-v2-5-turbo-pro-image-to-video': {
+    endpoint: 'fal-ai/kling-video/v2.5-turbo/pro/image-to-video',
+    maxDuration: 10,
+    supportedFormats: ['mp4']
   }
 };
 

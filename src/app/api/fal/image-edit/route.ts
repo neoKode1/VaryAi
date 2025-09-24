@@ -17,6 +17,11 @@ const MODEL_CONFIGS = {
     endpoint: 'fal-ai/qwen-image-edit',
     maxPromptLength: 200,
     supportedOperations: ['edit', 'inpaint', 'outpaint']
+  },
+  'qwen-image-edit-plus': {
+    endpoint: 'fal-ai/qwen-image-edit-plus',
+    maxPromptLength: 200,
+    supportedOperations: ['edit', 'inpaint', 'outpaint']
   }
 };
 

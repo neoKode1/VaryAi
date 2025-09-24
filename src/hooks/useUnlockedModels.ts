@@ -47,6 +47,7 @@ const SECRET_TO_GENERATE_MODEL_MAP: Record<string, string> = {
   'flux-krea': 'runway-t2i', // Map to existing model
   'flux-pro-kontext': 'runway-t2i', // Map to existing model
   'imagen4-preview': 'runway-t2i', // Map to existing model
+  'qwen-image-edit-plus': 'qwen-image-edit-plus', // This is an image edit model
   
   // Runway ALEPH Model
   'runway-aleph-image-to-video': 'runway-video',
@@ -54,6 +55,8 @@ const SECRET_TO_GENERATE_MODEL_MAP: Record<string, string> = {
   'kling-video-v2-1-master-image-to-video': 'kling-video-pro', // This is a video variant model
   'minimax-hailuo-02-pro-image-to-video': 'hailuo-02-pro', // This is a video variant model
   'minimax-video-01': 'minimax-i2v-director', // This is a video variant model
+  'wan-25-preview-image-to-video': 'wan-25-preview-image-to-video', // This is a video variant model
+  'kling-video-v2-5-turbo-pro-image-to-video': 'kling-video-v2-5-turbo-pro-image-to-video', // This is a video variant model
 };
 
 // Video variant models that should only be available in video mode
@@ -61,7 +64,9 @@ const VIDEO_VARIANT_MODELS = [
   'decart-lucy-14b',
   'minimax-i2v-director', 
   'hailuo-02-pro',
-  'kling-video-pro'
+  'kling-video-pro',
+  'wan-25-preview-image-to-video',
+  'kling-video-v2-5-turbo-pro-image-to-video'
 ];
 
 export const useUnlockedModels = () => {
