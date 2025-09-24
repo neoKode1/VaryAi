@@ -2,7 +2,9 @@
 
 import { useState, useCallback, useEffect, useMemo, useRef } from 'react';
 import { Upload, Download, Loader2, RotateCcw, Camera, Sparkles, Images, X, Trash2, Plus, ChevronLeft, ChevronRight, ChevronDown, ChevronUp, Edit, MessageCircle, HelpCircle, ArrowRight, ArrowUp, FolderOpen, Grid3X3, User, Settings, Send } from 'lucide-react';
-import { ConversationalChatPanel } from '@/components/conversational-chat-panel';
+import { ConversationalChatPanel } from '@/components/conversational-chat-panel'
+import { SmartPromptHandler } from '@/components/SmartPromptHandler'
+import { analyzePrompt, needsOptimization } from '@/lib/promptOptimizer';
 import { useRouter, usePathname } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
 import { useCreditCheck } from '@/hooks/useCreditCheck';
@@ -945,7 +947,11 @@ export default function Home() {
   const [galleryFilter, setGalleryFilter] = useState<'all' | 'images' | 'videos'>('all');
   
   // Conversational AI chat panel state
-  const [showChatPanel, setShowChatPanel] = useState(false);
+  const [showChatPanel, setShowChatPanel] = useState(false)
+  const [showSmartPromptHandler, setShowSmartPromptHandler] = useState(false)
+  const [pendingPrompt, setPendingPrompt] = useState('')
+  const [pendingModel, setPendingModel] = useState('')
+  const [pendingAction, setPendingAction] = useState<(() => void) | null>(null);
   
   // Processing items that appear in gallery
   const [processingItems, setProcessingItems] = useState<ProcessingItem[]>([]);
@@ -2206,12 +2212,15 @@ export default function Home() {
       return;
     }
 
-    const actionId = `t2i-${Date.now()}`;
-    setProcessingAction(actionId);
-    // No default mode - user must select explicitly
+    // Use smart prompt analysis for complex prompts
+    const currentModel = generationMode || 'nano-banana';
+    handleSmartPromptAnalysis(prompt, currentModel, async () => {
+      const actionId = `t2i-${Date.now()}`;
+      setProcessingAction(actionId);
+      // No default mode - user must select explicitly
 
-    try {
-      console.log('🎨 Starting text-to-image generation:', prompt);
+      try {
+        console.log('🎨 Starting text-to-image generation:', prompt);
       
       // Get authentication token
       const { data: { session } } = await supabase.auth.getSession();
@@ -2277,6 +2286,7 @@ export default function Home() {
     } finally {
       setProcessingAction(null);
     }
+    });
   };
 
   // Handle Seedream 3 text-to-image generation
@@ -6357,6 +6367,65 @@ export default function Home() {
     setPrompt(chatPrompt);
   }, []);
 
+  // Smart prompt handling
+  const handleSmartPromptAnalysis = (prompt: string, model: string, action: () => void) => {
+    const analysis = analyzePrompt(prompt);
+    
+    // If it's a simple prompt or doesn't need optimization, proceed directly
+    if (analysis.suggestedAction === 'quick-shot' && !needsOptimization(prompt, model)) {
+      action();
+      return;
+    }
+    
+    // Otherwise, show the smart prompt handler
+    setPendingPrompt(prompt);
+    setPendingModel(model);
+    setPendingAction(() => action);
+    setShowSmartPromptHandler(true);
+  };
+
+  const handleOptimizedPrompt = (optimizedPrompt: string, suggestedModel: string) => {
+    setShowSmartPromptHandler(false);
+    
+    // Update the prompt in the input
+    setPrompt(optimizedPrompt);
+    
+    // If a different model is suggested, update the generation mode
+    if (suggestedModel !== pendingModel) {
+      // Map model names to generation modes
+      const modelToMode: Record<string, string> = {
+        'flux-1.1-pro': 'flux-1-1-pro-text-to-image',
+        'dall-e-3': 'dall-e-3-text-to-image',
+        'midjourney-v6': 'midjourney-v6-text-to-image',
+        'seedance-pro': 'seedance-pro'
+      };
+      
+      const newMode = modelToMode[suggestedModel];
+      if (newMode) {
+        setGenerationMode(newMode as any);
+      }
+    }
+    
+    // Execute the pending action
+    if (pendingAction) {
+      pendingAction();
+    }
+  };
+
+  const handleProceedWithOriginal = () => {
+    setShowSmartPromptHandler(false);
+    if (pendingAction) {
+      pendingAction();
+    }
+  };
+
+  const handleCancelSmartPrompt = () => {
+    setShowSmartPromptHandler(false);
+    setPendingPrompt('');
+    setPendingModel('');
+    setPendingAction(null);
+  };
+
   return (
     <div className="h-screen bg-black relative overflow-hidden">
 
@@ -9437,6 +9506,18 @@ export default function Home() {
         uploadedFiles={uploadedFiles}
         isGenerating={processing.isProcessing}
       />
+
+      {/* Smart Prompt Handler */}
+      {showSmartPromptHandler && (
+        <SmartPromptHandler
+          prompt={pendingPrompt}
+          selectedModel={pendingModel}
+          availableModels={['nano-banana', 'runway-t2i', 'minimax-2.0', 'kling-2.1-master', 'veo3-fast', 'runway-video', 'seedance-pro', 'flux-1.1-pro', 'dall-e-3', 'midjourney-v6']}
+          onOptimizedPrompt={handleOptimizedPrompt}
+          onProceedWithOriginal={handleProceedWithOriginal}
+          onCancel={handleCancelSmartPrompt}
+        />
+      )}
 
       {/* Mobile Bottom Navigation - REMOVED for cleaner UX */}
       {/* Navigation is handled by header tabs - no need for redundant footer */}
