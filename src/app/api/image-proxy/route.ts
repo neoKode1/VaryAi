@@ -63,6 +63,38 @@ export async function GET(request: NextRequest) {
   try {
     console.log(`🖼️ Proxying image from: ${imageUrl}`);
     
+    // Check if this is a Runway URL with JWT token
+    const isRunwayUrl = imageUrl.includes('dnznrvs05pmza.cloudfront.net') && imageUrl.includes('_jwt=');
+    
+    if (isRunwayUrl) {
+      console.log('🔍 Detected Runway URL with JWT token');
+      
+      // Try to extract and check JWT expiration
+      const jwtMatch = imageUrl.match(/_jwt=([^&]+)/);
+      if (jwtMatch) {
+        try {
+          const jwtToken = jwtMatch[1];
+          const payload = JSON.parse(atob(jwtToken.split('.')[1]));
+          const exp = payload.exp;
+          const now = Math.floor(Date.now() / 1000);
+          
+          if (exp && exp < now) {
+            console.log('🔒 JWT token expired for URL:', imageUrl);
+            // Return a placeholder image for expired URLs
+            return new NextResponse(null, {
+              status: 302,
+              headers: {
+                'Location': '/api/placeholder/400/400?text=Image+Expired',
+                'Cache-Control': 'no-cache'
+              }
+            });
+          }
+        } catch (jwtError) {
+          console.warn('⚠️ Could not parse JWT token:', jwtError);
+        }
+      }
+    }
+    
     // Fetch the image with proper headers
     const response = await fetch(imageUrl, {
       method: 'GET',
@@ -80,9 +112,9 @@ export async function GET(request: NextRequest) {
       console.error(`❌ Image fetch failed: ${response.status} - ${response.statusText}`);
       
       // Handle specific error cases
-      if (response.status === 401) {
-        console.warn(`🔒 JWT token expired for URL: ${imageUrl}`);
-        // Return a placeholder image for expired URLs
+      if (response.status === 401 || response.status === 403) {
+        console.warn(`🔒 Authentication failed for URL: ${imageUrl}`);
+        // Return a placeholder image for expired/unauthorized URLs
         return new NextResponse(null, {
           status: 302,
           headers: {

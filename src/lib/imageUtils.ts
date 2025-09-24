@@ -89,12 +89,43 @@ export const getOptimizedImageUrl = async (imagePath: string): Promise<string> =
 };
 
 /**
+ * Check if a URL is expired (for Runway URLs with JWT tokens)
+ */
+export const isUrlExpired = (imageUrl: string): boolean => {
+  if (!imageUrl.includes('_jwt=')) {
+    return false;
+  }
+  
+  try {
+    const jwtMatch = imageUrl.match(/_jwt=([^&]+)/);
+    if (jwtMatch) {
+      const jwtToken = jwtMatch[1];
+      const payload = JSON.parse(atob(jwtToken.split('.')[1]));
+      const exp = payload.exp;
+      const now = Math.floor(Date.now() / 1000);
+      
+      return exp && exp < now;
+    }
+  } catch (error) {
+    console.warn('Could not parse JWT token:', error);
+  }
+  
+  return false;
+};
+
+/**
  * Get proxied image URL for CORS-problematic URLs
  */
 export const getProxiedImageUrl = (imageUrl: string | null | undefined): string => {
   // Handle null/undefined cases
   if (!imageUrl) {
     return '/api/placeholder/400/400';
+  }
+  
+  // Check if URL is expired
+  if (isUrlExpired(imageUrl)) {
+    console.log('🔒 URL is expired, using placeholder:', imageUrl);
+    return '/api/placeholder/400/400?text=Image+Expired';
   }
   
   // Check if URL is from a CORS-problematic domain

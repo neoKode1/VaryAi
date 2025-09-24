@@ -8622,7 +8622,11 @@ export default function Home() {
                                 alt="Gallery item"
                                 className="w-full h-full object-cover"
                                 onError={(e) => {
-                                  e.currentTarget.src = '/api/placeholder/300/300';
+                                  console.log('🖼️ Image failed to load, using placeholder:', item.imageUrl);
+                                  e.currentTarget.src = '/api/placeholder/300/300?text=Image+Expired';
+                                }}
+                                onLoad={() => {
+                                  console.log('✅ Image loaded successfully:', item.imageUrl);
                                 }}
                               />
                             )}

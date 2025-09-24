@@ -48,6 +48,12 @@ export default function AdminCreditsPage() {
   const [batches, setBatches] = useState<GrandfatherBatch[]>([]);
   const [creditStats, setCreditStats] = useState<CreditStats | null>(null);
   const [modelCosts, setModelCosts] = useState<ModelCost[]>([]);
+  const [galleryStats, setGalleryStats] = useState<{
+    total: number;
+    expired: number;
+    valid: number;
+  } | null>(null);
+  const [cleanupLoading, setCleanupLoading] = useState(false);
   
   // Form state
   const [batchName, setBatchName] = useState('');
@@ -55,9 +61,49 @@ export default function AdminCreditsPage() {
   const [creditsPerUser, setCreditsPerUser] = useState(5.00);
   const [maxUsers, setMaxUsers] = useState(64);
 
+  const checkGalleryStatus = async () => {
+    try {
+      const response = await fetch('/api/cleanup-gallery');
+      if (response.ok) {
+        const data = await response.json();
+        setGalleryStats({
+          total: data.total,
+          expired: data.expired,
+          valid: data.valid
+        });
+      }
+    } catch (error) {
+      console.error('Error checking gallery status:', error);
+    }
+  };
+
+  const cleanupGallery = async () => {
+    setCleanupLoading(true);
+    try {
+      const response = await fetch('/api/cleanup-gallery', {
+        method: 'POST'
+      });
+      
+      if (response.ok) {
+        const data = await response.json();
+        setSuccess(`Cleaned up ${data.cleaned} expired gallery items`);
+        await checkGalleryStatus(); // Refresh stats
+      } else {
+        const errorData = await response.json();
+        setError(errorData.error || 'Cleanup failed');
+      }
+    } catch (error) {
+      setError('Cleanup failed');
+      console.error('Error cleaning up gallery:', error);
+    } finally {
+      setCleanupLoading(false);
+    }
+  };
+
   useEffect(() => {
     if (user) {
       loadData();
+      checkGalleryStatus();
     }
   }, [user]);
 
@@ -218,6 +264,66 @@ export default function AdminCreditsPage() {
                   <CreditCard className="h-8 w-8 text-purple-400" />
                 </div>
               </div>
+            </div>
+          </div>
+
+          {/* Gallery Cleanup */}
+          <div className="bg-white/10 backdrop-blur-lg rounded-xl p-6 border border-white/20">
+            <h2 className="text-2xl font-bold text-white mb-6">Gallery Cleanup</h2>
+            <p className="text-blue-200 mb-6">
+              Clean up expired gallery items with expired JWT tokens (mainly from Runway).
+            </p>
+
+            {galleryStats && (
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                <div className="bg-white/5 rounded-lg p-4">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-blue-200 text-sm">Total Items</p>
+                      <p className="text-2xl font-bold text-white">{galleryStats.total}</p>
+                    </div>
+                    <Users className="h-8 w-8 text-blue-400" />
+                  </div>
+                </div>
+
+                <div className="bg-white/5 rounded-lg p-4">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-green-200 text-sm">Valid Items</p>
+                      <p className="text-2xl font-bold text-white">{galleryStats.valid}</p>
+                    </div>
+                    <CheckCircle className="h-8 w-8 text-green-400" />
+                  </div>
+                </div>
+
+                <div className="bg-white/5 rounded-lg p-4">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-red-200 text-sm">Expired Items</p>
+                      <p className="text-2xl font-bold text-white">{galleryStats.expired}</p>
+                    </div>
+                    <XCircle className="h-8 w-8 text-red-400" />
+                  </div>
+                </div>
+              </div>
+            )}
+
+            <div className="flex gap-4">
+              <button
+                onClick={checkGalleryStatus}
+                className="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors"
+              >
+                Refresh Status
+              </button>
+              
+              <button
+                onClick={cleanupGallery}
+                disabled={cleanupLoading || !galleryStats?.expired}
+                className="px-6 py-2 bg-red-600 hover:bg-red-700 disabled:bg-gray-600 disabled:cursor-not-allowed text-white rounded-lg transition-colors flex items-center gap-2"
+              >
+                {cleanupLoading && <Loader2 className="h-4 w-4 animate-spin" />}
+                Clean Up Expired Items
+              </button>
             </div>
           </div>
 
