@@ -57,11 +57,14 @@ type SecretGenerationMode =
   | 'minimax-video-01'
   | 'nano-banana-edit'
   | 'qwen-image-edit'
+  | 'qwen-image-edit-plus'
   | 'stable-diffusion-v35-large'
   | 'veo3-fast-image-to-video'
   | 'veo3-image-to-video'
   | 'veo3-standard'
   | 'wan-v2-2-a14b-image-to-video-lora'
+  | 'wan-25-preview-image-to-video'
+  | 'kling-video-v2-5-turbo-pro-image-to-video'
   // Lip Sync Models
   | 'wav2lip'
   | 'latentsync'
@@ -524,11 +527,14 @@ export default function SecretPage() {
       'minimax-video-01': 100,
       'nano-banana-edit': 20,
       'qwen-image-edit': 25,
+      'qwen-image-edit-plus': 30,
       'stable-diffusion-v35-large': 40,
       'veo3-fast-image-to-video': 45,
       'veo3-image-to-video': 60,
       'veo3-standard': 50,
       'wan-v2-2-a14b-image-to-video-lora': 80,
+      'wan-25-preview-image-to-video': 50,
+      'kling-video-v2-5-turbo-pro-image-to-video': 60,
       // Lip Sync Models
       'wav2lip': 30,
       'latentsync': 45,
@@ -602,11 +608,14 @@ export default function SecretPage() {
       'minimax-video-01': 'Minimax Video 01',
       'nano-banana-edit': 'Nano Banana Edit',
       'qwen-image-edit': 'Qwen Image Edit',
+      'qwen-image-edit-plus': 'Qwen Image Edit Plus',
       'stable-diffusion-v35-large': 'Stable Diffusion V3.5',
       'veo3-fast-image-to-video': 'Veo3 Fast I2V',
       'veo3-image-to-video': 'Veo3 I2V',
       'veo3-standard': 'Veo3 Standard',
       'wan-v2-2-a14b-image-to-video-lora': 'Wan V2.2 A14b LoRA',
+      'wan-25-preview-image-to-video': 'WAN-25 Preview',
+      'kling-video-v2-5-turbo-pro-image-to-video': 'Kling Video V2.5 Turbo Pro',
       // Lip Sync Models
       'wav2lip': 'Wav2Lip',
       'latentsync': 'LatentSync',
@@ -690,6 +699,9 @@ export default function SecretPage() {
         }
         if (unlockedModels.has('qwen-image-edit')) {
           modes.push('qwen-image-edit');
+        }
+        if (unlockedModels.has('qwen-image-edit-plus')) {
+          modes.push('qwen-image-edit-plus');
         }
       }
     }
@@ -1259,7 +1271,7 @@ export default function SecretPage() {
           duration: 5,
           aspectRatio: '16:9' // Default for testing - can be made configurable
         };
-      } else if (['nano-banana-edit', 'qwen-image-edit'].includes(generationMode)) {
+      } else if (['nano-banana-edit', 'qwen-image-edit', 'qwen-image-edit-plus'].includes(generationMode)) {
         // Image editing models
         apiEndpoint = '/api/fal/image-edit';
         
