@@ -81,21 +81,21 @@ export const DEFAULT_PRICING_CONFIG: PricingConfig = {
     free: {
       monthlyGenerations: 0, // 0 means unlimited for Nano Banana
       dailyGenerations: 0, // 0 means unlimited for Nano Banana
-      allowedModels: ['nano-banana', 'runway-t2i', 'minimax-2.0', 'kling-2.1-master', 'veo3-fast', 'runway-video', 'seedance-pro'],
+      allowedModels: ['nano-banana', 'runway-t2i', 'minimax-2.0', 'kling-2.1-master', 'flux-dev', 'gemini-25-flash-image-edit', 'qwen-image-edit-plus', 'luma-photon-reframe'],
       overageRate: 0.05, // $0.05 per generation over limit
       premiumModelLimit: 5, // 5 free generations of premium models per month (conservative approach)
     },
     light: {
       monthlyGenerations: 50,
       dailyGenerations: 20,
-      allowedModels: ['nano-banana', 'runway-t2i', 'minimax-2.0', 'kling-2.1-master', 'veo3-fast', 'runway-video'],
+      allowedModels: ['nano-banana', 'runway-t2i', 'minimax-2.0', 'kling-2.1-master', 'flux-dev', 'gemini-25-flash-image-edit', 'qwen-image-edit-plus', 'luma-photon-reframe', 'veo3-fast', 'runway-video', 'minimax-video', 'kling-ai-avatar', 'seedance-pro'],
       overageRate: 0.05, // $0.05 per generation over limit
       price: 14.99,
     },
     heavy: {
       monthlyGenerations: 100,
       dailyGenerations: 50,
-      allowedModels: ['nano-banana', 'runway-t2i', 'minimax-2.0', 'kling-2.1-master', 'veo3-fast', 'runway-video', 'seedance-pro'],
+      allowedModels: ['nano-banana', 'runway-t2i', 'minimax-2.0', 'kling-2.1-master', 'flux-dev', 'gemini-25-flash-image-edit', 'qwen-image-edit-plus', 'luma-photon-reframe', 'veo3-fast', 'runway-video', 'minimax-video', 'kling-ai-avatar', 'seedance-pro', 'decart-lucy-14b', 'minimax-i2v-director', 'hailuo-02-pro', 'kling-video-pro', 'seedream-3', 'seedance-1-pro', 'bytedance/seedream-4', 'fal-ai/bytedance/seedream/v4/edit', 'minimax-video-01', 'stable-video-diffusion-i2v', 'modelscope-i2v', 'text2video-zero-i2v', 'wan-v2-2-a14b-i2v-lora', 'wan-25-preview-image-to-video', 'kling-video-v2-5-turbo-pro-image-to-video', 'cogvideo-i2v', 'zeroscope-t2v'],
       overageRate: 0.04, // $0.04 per generation over limit
       price: 19.99,
     },
@@ -122,6 +122,26 @@ export const DEFAULT_PRICING_CONFIG: PricingConfig = {
       creditWeight: 1,
       allowedTiers: ['free', 'light', 'heavy'],
     },
+    'flux-dev': {
+      cost: 0.0398,
+      creditWeight: 1,
+      allowedTiers: ['free', 'light', 'heavy'],
+    },
+    'gemini-25-flash-image-edit': {
+      cost: 0.0398,
+      creditWeight: 1,
+      allowedTiers: ['free', 'light', 'heavy'],
+    },
+    'qwen-image-edit-plus': {
+      cost: 0.0398,
+      creditWeight: 1,
+      allowedTiers: ['free', 'light', 'heavy'],
+    },
+    'luma-photon-reframe': {
+      cost: 0.0398,
+      creditWeight: 1,
+      allowedTiers: ['free', 'light', 'heavy'],
+    },
     // Premium models - 4 credits each (4x more expensive)
     'veo3-fast': {
       cost: 0.15,
@@ -133,11 +153,105 @@ export const DEFAULT_PRICING_CONFIG: PricingConfig = {
       creditWeight: 4,
       allowedTiers: ['light', 'heavy'],
     },
-    // Ultra-premium models - 63 credits each (63x more expensive)
+    'minimax-video': {
+      cost: 0.15,
+      creditWeight: 4,
+      allowedTiers: ['light', 'heavy'],
+    },
+    'kling-ai-avatar': {
+      cost: 0.15,
+      creditWeight: 4,
+      allowedTiers: ['light', 'heavy'],
+    },
     'seedance-pro': {
-      cost: 2.50,
-      creditWeight: 63,
-      allowedTiers: ['heavy'],
+      cost: 0.15,
+      creditWeight: 4,
+      allowedTiers: ['light', 'heavy'],
+    },
+    'decart-lucy-14b': {
+      cost: 0.15,
+      creditWeight: 4,
+      allowedTiers: ['light', 'heavy'],
+    },
+    'minimax-i2v-director': {
+      cost: 0.15,
+      creditWeight: 4,
+      allowedTiers: ['light', 'heavy'],
+    },
+    'hailuo-02-pro': {
+      cost: 0.15,
+      creditWeight: 4,
+      allowedTiers: ['light', 'heavy'],
+    },
+    'kling-video-pro': {
+      cost: 0.15,
+      creditWeight: 4,
+      allowedTiers: ['light', 'heavy'],
+    },
+    'seedream-3': {
+      cost: 0.15,
+      creditWeight: 4,
+      allowedTiers: ['light', 'heavy'],
+    },
+    'seedance-1-pro': {
+      cost: 0.15,
+      creditWeight: 4,
+      allowedTiers: ['light', 'heavy'],
+    },
+    'bytedance/seedream-4': {
+      cost: 0.15,
+      creditWeight: 4,
+      allowedTiers: ['light', 'heavy'],
+    },
+    'fal-ai/bytedance/seedream/v4/edit': {
+      cost: 0.15,
+      creditWeight: 4,
+      allowedTiers: ['light', 'heavy'],
+    },
+    'minimax-video-01': {
+      cost: 0.15,
+      creditWeight: 4,
+      allowedTiers: ['light', 'heavy'],
+    },
+    'stable-video-diffusion-i2v': {
+      cost: 0.15,
+      creditWeight: 4,
+      allowedTiers: ['light', 'heavy'],
+    },
+    'modelscope-i2v': {
+      cost: 0.15,
+      creditWeight: 4,
+      allowedTiers: ['light', 'heavy'],
+    },
+    'text2video-zero-i2v': {
+      cost: 0.15,
+      creditWeight: 4,
+      allowedTiers: ['light', 'heavy'],
+    },
+    'wan-v2-2-a14b-i2v-lora': {
+      cost: 0.15,
+      creditWeight: 4,
+      allowedTiers: ['light', 'heavy'],
+    },
+    'wan-25-preview-image-to-video': {
+      cost: 0.15,
+      creditWeight: 4,
+      allowedTiers: ['light', 'heavy'],
+    },
+    'kling-video-v2-5-turbo-pro-image-to-video': {
+      cost: 0.15,
+      creditWeight: 4,
+      allowedTiers: ['light', 'heavy'],
+    },
+    'cogvideo-i2v': {
+      cost: 0.15,
+      creditWeight: 4,
+      allowedTiers: ['light', 'heavy'],
+    },
+    'zeroscope-t2v': {
+      cost: 0.15,
+      creditWeight: 4,
+      allowedTiers: ['light', 'heavy'],
     },
   },
   creditPacks: {
