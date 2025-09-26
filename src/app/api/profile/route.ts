@@ -29,9 +29,10 @@ export async function GET(request: NextRequest) {
 
     console.log('✅ User authenticated:', user.id);
 
-    // Get user profile from database
+    // Get user profile from database using admin client
     console.log('📊 Fetching user profile from database...');
-    const { data: profile, error: profileError } = await supabase
+    const client = supabaseAdmin || supabase;
+    const { data: profile, error: profileError } = await client
       .from('users')
       .select('*')
       .eq('id', user.id)
@@ -49,7 +50,8 @@ export async function GET(request: NextRequest) {
     console.log('🔍 [GALLERY DEBUG] User ID:', user.id);
     console.log('🔍 [GALLERY DEBUG] User email:', user.email);
     
-    const { data: gallery, error: galleryError } = await supabase
+    // Use the same admin client for gallery query
+    const { data: gallery, error: galleryError } = await client
       .from('galleries')
       .select('*')
       .eq('user_id', user.id)
@@ -195,8 +197,9 @@ export async function PUT(request: NextRequest) {
 
     console.log('Updating profile with data:', updateData);
 
-    // First, check if profile exists
-    const { data: existingProfile, error: fetchError } = await supabase
+    // First, check if profile exists using admin client
+    const client = supabaseAdmin || supabase;
+    const { data: existingProfile, error: fetchError } = await client
       .from('users')
       .select('id')
       .eq('id', user.id)
@@ -234,8 +237,7 @@ export async function PUT(request: NextRequest) {
         updated_at: new Date().toISOString()
       };
 
-      // Use admin client to bypass RLS for profile creation, fallback to regular client
-      const client = supabaseAdmin || supabase;
+      // Use admin client to bypass RLS for profile creation
       const { data: createdProfile, error: createError } = await client
         .from('users')
         .insert(newProfileData)
