@@ -1,7 +1,8 @@
 'use client';
 
 import React, { useState, useRef, useEffect, useCallback } from 'react';
-import { Mic, MicOff, Send, Bot, User, Loader2, X, MessageSquare } from 'lucide-react';
+import { Mic, MicOff, Send, Bot, User, Loader2, X, MessageSquare, Video } from 'lucide-react';
+import { GlifVideoGenerator } from './GlifVideoGenerator';
 
 interface ChatMessage {
   id: string;
@@ -9,7 +10,7 @@ interface ChatMessage {
   content: string;
   timestamp: Date;
   action?: {
-    type: 'quick_shots' | 'halloween_me' | 'generate' | 'preset';
+    type: 'quick_shots' | 'halloween_me' | 'generate' | 'preset' | 'video_generation';
     data?: any;
   };
 }
@@ -60,6 +61,7 @@ export const ConversationalChatPanel: React.FC<ConversationalChatPanelProps> = (
   const [conversationState, setConversationState] = useState<ConversationState>({
     isWaitingForConfirmation: false
   });
+  const [showVideoGenerator, setShowVideoGenerator] = useState(false);
   
   // Dragging state
   const [isDragging, setIsDragging] = useState(false);
@@ -227,6 +229,16 @@ export const ConversationalChatPanel: React.FC<ConversationalChatPanelProps> = (
       };
     }
     
+    // Video generation commands
+    if (lowerText.includes('video') || lowerText.includes('infinite kling') || 
+        lowerText.includes('kling 2.5') || lowerText.includes('long video') ||
+        lowerText.includes('one-take') || lowerText.includes('continuous video')) {
+      return {
+        action: 'video_generation',
+        response: "Great! I'll open the Infinite Kling 2.5 video generator for you. You can create infinitely long one-take videos!"
+      };
+    }
+    
     // For more complex or ambiguous requests, use Claude API
     try {
       const context = {
@@ -289,6 +301,9 @@ export const ConversationalChatPanel: React.FC<ConversationalChatPanelProps> = (
           if (interpretation.pendingAction?.context?.customPrompt) {
             // Send custom prompt to main input
             onSendPrompt(interpretation.pendingAction.context.customPrompt);
+          } else if (interpretation.action === 'video_generation') {
+            // Show video generator modal
+            setShowVideoGenerator(true);
           } else {
             onExecuteAction(interpretation.action!, interpretation.data);
           }
@@ -304,6 +319,22 @@ export const ConversationalChatPanel: React.FC<ConversationalChatPanelProps> = (
       setIsProcessing(false);
     }
   }, [inputText, addMessage, interpretCommand, onExecuteAction, onSendPrompt]);
+
+  const handleVideoGeneration = useCallback((videoUrl: string) => {
+    const aiMessage: ChatMessage = {
+      id: Date.now().toString(),
+      type: 'ai',
+      content: `🎬 Your Infinite Kling 2.5 video has been generated! Check it out:`,
+      timestamp: new Date(),
+      action: {
+        type: 'video_generation',
+        data: { videoUrl }
+      }
+    };
+
+    setMessages(prev => [...prev, aiMessage]);
+    setShowVideoGenerator(false);
+  }, []);
 
   const handleKeyPress = useCallback((e: React.KeyboardEvent) => {
     if (e.key === 'Enter' && !e.shiftKey) {
@@ -426,8 +457,26 @@ export const ConversationalChatPanel: React.FC<ConversationalChatPanelProps> = (
                 <div className="flex-1">
                   <p className="text-sm">{message.content}</p>
                   {message.action && (
-                    <div className="mt-2 text-xs opacity-75">
-                      Action: {message.action.type}
+                    <div className="mt-2">
+                      {message.action.type === 'video_generation' && (
+                        <div className="p-3 bg-blue-50 border border-blue-200 rounded-md">
+                          <p className="text-sm text-blue-600 mb-2">🎬 Video Generated!</p>
+                          {message.action.data?.videoUrl && (
+                            <video 
+                              src={message.action.data.videoUrl} 
+                              controls 
+                              className="w-full max-w-sm rounded-md"
+                            >
+                              Your browser does not support the video tag.
+                            </video>
+                          )}
+                        </div>
+                      )}
+                      {message.action.type !== 'video_generation' && (
+                        <div className="text-xs opacity-75">
+                          Action: {message.action.type}
+                        </div>
+                      )}
                     </div>
                   )}
                 </div>
@@ -510,6 +559,31 @@ export const ConversationalChatPanel: React.FC<ConversationalChatPanelProps> = (
           )}
         </div>
       </div>
+
+      {/* Video Generator Modal */}
+      {showVideoGenerator && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="p-4 border-b">
+              <div className="flex items-center justify-between">
+                <h3 className="text-lg font-semibold">Infinite Kling 2.5 Video Generator</h3>
+                <button
+                  onClick={() => setShowVideoGenerator(false)}
+                  className="text-gray-500 hover:text-gray-700"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+            </div>
+            <div className="p-4">
+              <GlifVideoGenerator
+                onVideoGenerated={handleVideoGeneration}
+                userId={uploadedFiles[0]?.userId} // You might need to pass the actual user ID
+              />
+            </div>
+          </div>
+        </div>
+      )}
     </div>
     </>
   );
