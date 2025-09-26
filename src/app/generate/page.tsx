@@ -5946,6 +5946,26 @@ export default function Home() {
       return;
     }
 
+    // Create processing item for gallery queuing
+    const processingId = `kling-avatar-${Date.now()}`;
+    const abortController = new AbortController();
+    
+    const processingItem: ProcessingItem = {
+      id: processingId,
+      type: 'video',
+      model: 'kling-ai-avatar',
+      prompt: prompt.trim() || 'Generate AI avatar video',
+      progress: 0,
+      currentStep: 'Starting Kling AI Avatar generation... (This may take 2-20 minutes)',
+      startTime: Date.now(),
+      estimatedTime: 1200, // 20 minutes
+      cancellable: true,
+      abortController
+    };
+    
+    addProcessingItem(processingItem);
+
+    // Also set the old processing state for backward compatibility
     setProcessing({
       isProcessing: true,
       progress: 0,
@@ -5959,6 +5979,12 @@ export default function Home() {
         console.error('❌ No active session found');
         throw new Error('Authentication required - please sign in');
       }
+
+      // Update processing item
+      updateProcessingItem(processingId, {
+        progress: 20,
+        currentStep: 'Uploading image and audio...'
+      });
 
       setProcessing({
         isProcessing: true,
@@ -5984,6 +6010,12 @@ export default function Home() {
 
       const audioUploadData = await audioUploadResponse.json();
       const audioUrl = audioUploadData.url;
+
+      // Update processing item
+      updateProcessingItem(processingId, {
+        progress: 40,
+        currentStep: 'Generating AI Avatar video... (Please be patient - this can take 2-20 minutes)'
+      });
 
       setProcessing({
         isProcessing: true,
@@ -6049,6 +6081,13 @@ export default function Home() {
 
             // Update progress based on status
             const progressPercent = Math.min(90, 40 + (pollCount / maxPolls) * 50);
+            
+            // Update processing item
+            updateProcessingItem(processingId, {
+              progress: progressPercent,
+              currentStep: `Generating AI Avatar video... (${statusData.status.toLowerCase()}) - ${Math.round(pollCount * pollInterval / 1000)}s elapsed`
+            });
+            
             setProcessing(prev => ({
               ...prev,
               progress: progressPercent,
@@ -6082,6 +6121,12 @@ export default function Home() {
 
       const finalData = await pollForStatus();
       console.log('✅ Kling AI Avatar generation successful:', finalData);
+
+      // Update processing item to finalizing
+      updateProcessingItem(processingId, {
+        progress: 80,
+        currentStep: 'Finalizing AI Avatar video... (Almost done!)'
+      });
 
       setProcessing({
         isProcessing: true,
@@ -6117,6 +6162,17 @@ export default function Home() {
       setUploadedAudio(null);
       console.log('🧹 Cleared input after successful Kling AI Avatar generation');
 
+      // Update processing item to complete and then remove it
+      updateProcessingItem(processingId, {
+        progress: 100,
+        currentStep: 'Complete!'
+      });
+
+      // Remove the processing item after a short delay
+      setTimeout(() => {
+        removeProcessingItem(processingId);
+      }, 2000);
+
       setProcessing({
         isProcessing: false,
         progress: 100,
@@ -6134,6 +6190,10 @@ export default function Home() {
     } catch (error) {
       console.error('Kling AI Avatar generation error:', error);
       showAnimatedErrorNotification(`User Error: ${error instanceof Error ? error.message : 'Failed to generate AI avatar video'} TOASTY!`, 'toasty');
+      
+      // Remove the processing item on error
+      removeProcessingItem(processingId);
+      
       setProcessing({
         isProcessing: false,
         progress: 0,
@@ -6155,6 +6215,25 @@ export default function Home() {
       return;
     }
 
+    // Create processing item for gallery queuing
+    const processingId = `luma-reframe-${Date.now()}`;
+    const abortController = new AbortController();
+    
+    const processingItem: ProcessingItem = {
+      id: processingId,
+      type: 'image',
+      model: 'luma-photon-reframe',
+      prompt: 'Image reframing',
+      progress: 0,
+      currentStep: 'Starting Luma Photon Reframe generation...',
+      startTime: Date.now(),
+      estimatedTime: 60, // 1 minute
+      cancellable: true,
+      abortController
+    };
+    
+    addProcessingItem(processingItem);
+
     setProcessing({
       isProcessing: true,
       progress: 0,
@@ -6169,6 +6248,12 @@ export default function Home() {
         throw new Error('Authentication required - please sign in');
       }
 
+      // Update processing item
+      updateProcessingItem(processingId, {
+        progress: 20,
+        currentStep: 'Uploading image...'
+      });
+
       setProcessing({
         isProcessing: true,
         progress: 20,
@@ -6178,6 +6263,12 @@ export default function Home() {
       // Upload image to Supabase and get FAL URL
       const imageUrl = await uploadImageToSupabaseAndFal(imageFile.base64);
       
+      // Update processing item
+      updateProcessingItem(processingId, {
+        progress: 40,
+        currentStep: 'Generating reframed image...'
+      });
+
       setProcessing({
         isProcessing: true,
         progress: 40,
@@ -6209,6 +6300,12 @@ export default function Home() {
         throw new Error(data.error || 'Failed to generate reframed image');
       }
 
+      // Update processing item to complete
+      updateProcessingItem(processingId, {
+        progress: 100,
+        currentStep: 'Complete!'
+      });
+
       setProcessing({
         isProcessing: true,
         progress: 100,
@@ -6228,6 +6325,11 @@ export default function Home() {
       // Add to gallery
       addToGallery([reframedVariation], prompt.trim() || 'Image reframing');
 
+      // Remove the processing item after a short delay
+      setTimeout(() => {
+        removeProcessingItem(processingId);
+      }, 2000);
+
       setProcessing({
         isProcessing: false,
         progress: 100,
@@ -6239,6 +6341,10 @@ export default function Home() {
     } catch (error) {
       console.error('❌ Luma Photon Reframe generation error:', error);
       showAnimatedErrorNotification(`User Error: ${error instanceof Error ? error.message : 'Failed to generate reframed image'} TOASTY!`, 'toasty');
+      
+      // Remove the processing item on error
+      removeProcessingItem(processingId);
+      
       setProcessing({
         isProcessing: false,
         progress: 0,
@@ -6512,9 +6618,16 @@ export default function Home() {
                       {/* Spinner */}
                       <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-cyan-400 mb-3"></div>
                       
-                      {/* Model Name */}
-                      <div className="text-cyan-300 text-xs font-medium mb-1 text-center">
-                        {item.model}
+                      {/* Model Name with special styling for video models */}
+                      <div className={`text-xs font-medium mb-1 text-center ${
+                        item.model === 'kling-ai-avatar' ? 'text-purple-300' : 
+                        item.type === 'video' ? 'text-orange-300' : 'text-cyan-300'
+                      }`}>
+                        {item.model === 'kling-ai-avatar' ? '🎭 Kling Avatar' : 
+                         item.model === 'veo3-fast' ? '⚡ Veo3 Fast' :
+                         item.model === 'minimax-2.0' ? '🎬 Minimax 2.0' :
+                         item.model === 'runway-video' ? '🎥 Runway Video' :
+                         item.model}
                       </div>
                       
                       {/* Progress */}
@@ -6522,13 +6635,24 @@ export default function Home() {
                         {item.progress}%
                       </div>
                       
-                      {/* Progress Bar */}
+                      {/* Progress Bar with different colors for video models */}
                       <div className="w-full bg-gray-700 rounded-full h-1 mb-2">
                         <div 
-                          className="bg-gradient-to-r from-cyan-400 to-blue-400 h-1 rounded-full transition-all duration-300"
+                          className={`h-1 rounded-full transition-all duration-300 ${
+                            item.model === 'kling-ai-avatar' ? 'bg-gradient-to-r from-purple-400 to-pink-400' :
+                            item.type === 'video' ? 'bg-gradient-to-r from-orange-400 to-red-400' :
+                            'bg-gradient-to-r from-cyan-400 to-blue-400'
+                          }`}
                           style={{ width: `${item.progress}%` }}
                         ></div>
                       </div>
+                      
+                      {/* Time elapsed for long-running processes */}
+                      {item.estimatedTime && item.estimatedTime > 300 && (
+                        <div className="text-gray-400 text-xs mb-1">
+                          {Math.round((Date.now() - item.startTime) / 1000)}s / {Math.round(item.estimatedTime)}s
+                        </div>
+                      )}
                       
                       {/* Current Step */}
                       <div className="text-gray-300 text-xs text-center leading-tight">
