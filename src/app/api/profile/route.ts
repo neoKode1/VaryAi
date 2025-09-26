@@ -4,6 +4,12 @@ import { supabase, supabaseAdmin } from '@/lib/supabase';
 export async function GET(request: NextRequest) {
   try {
     console.log('🔍 Profile API GET request received');
+    console.log('🔧 Environment check:', {
+      hasSupabaseUrl: !!process.env.NEXT_PUBLIC_SUPABASE_URL,
+      hasAnonKey: !!process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
+      hasServiceKey: !!process.env.SUPABASE_SERVICE_ROLE_KEY,
+      supabaseAdminAvailable: !!supabaseAdmin
+    });
     
     const authHeader = request.headers.get('authorization');
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
@@ -73,22 +79,26 @@ export async function GET(request: NextRequest) {
         
         // Let's also check if there are any gallery items at all for this user (bypassing RLS)
         console.log('🔍 [GALLERY DEBUG] Checking total gallery count for user...');
-        const { data: totalGallery, error: totalError } = await supabaseAdmin!
-          .from('galleries')
-          .select('id, user_id, created_at')
-          .eq('user_id', user.id);
-          
-        if (totalError) {
-          console.error('❌ [GALLERY DEBUG] Error checking total gallery count:', totalError);
+        if (!supabaseAdmin) {
+          console.error('❌ [GALLERY DEBUG] SupabaseAdmin not available for admin query');
         } else {
-          console.log('🔍 [GALLERY DEBUG] Total gallery items (admin query):', totalGallery?.length || 0);
-          if (totalGallery && totalGallery.length > 0) {
-            console.log('⚠️ [GALLERY DEBUG] RLS POLICY ISSUE DETECTED: Admin query found items but user query returned zero');
-            console.log('🔍 [GALLERY DEBUG] Sample items:', totalGallery.slice(0, 3).map(item => ({
-              id: item.id,
-              user_id: item.user_id,
-              created_at: item.created_at
-            })));
+          const { data: totalGallery, error: totalError } = await supabaseAdmin
+            .from('galleries')
+            .select('id, user_id, created_at')
+            .eq('user_id', user.id);
+          
+          if (totalError) {
+            console.error('❌ [GALLERY DEBUG] Error checking total gallery count:', totalError);
+          } else {
+            console.log('🔍 [GALLERY DEBUG] Total gallery items (admin query):', totalGallery?.length || 0);
+            if (totalGallery && totalGallery.length > 0) {
+              console.log('⚠️ [GALLERY DEBUG] RLS POLICY ISSUE DETECTED: Admin query found items but user query returned zero');
+              console.log('🔍 [GALLERY DEBUG] Sample items:', totalGallery.slice(0, 3).map(item => ({
+                id: item.id,
+                user_id: item.user_id,
+                created_at: item.created_at
+              })));
+            }
           }
         }
       }
@@ -140,7 +150,15 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ profile, gallery: gallery || [] });
   } catch (error) {
     console.error('❌ Profile API error:', error);
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+    console.error('❌ Error details:', {
+      message: error instanceof Error ? error.message : 'Unknown error',
+      stack: error instanceof Error ? error.stack : undefined,
+      name: error instanceof Error ? error.name : undefined
+    });
+    return NextResponse.json({ 
+      error: 'Internal server error',
+      details: error instanceof Error ? error.message : 'Unknown error'
+    }, { status: 500 });
   }
 }
 
@@ -267,7 +285,15 @@ export async function PUT(request: NextRequest) {
 
     return NextResponse.json({ profile: updatedProfile });
   } catch (error) {
-    console.error('Profile update error:', error);
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+    console.error('❌ Profile update error:', error);
+    console.error('❌ Update error details:', {
+      message: error instanceof Error ? error.message : 'Unknown error',
+      stack: error instanceof Error ? error.stack : undefined,
+      name: error instanceof Error ? error.name : undefined
+    });
+    return NextResponse.json({ 
+      error: 'Internal server error',
+      details: error instanceof Error ? error.message : 'Unknown error'
+    }, { status: 500 });
   }
 }
