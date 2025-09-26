@@ -47,7 +47,7 @@ type GenerationMode =
   | 'modelscope-i2v'
   | 'text2video-zero-i2v'
   // Lower-Tier Image-to-Video Models ($0.10)
-  | 'wan-v2-2-a14b-i2v-lora'
+  | 'wan-2.2-animate'
   | 'wan-25-preview-image-to-video'
   | 'kling-video-v2-5-turbo-pro-image-to-video'
   | 'cogvideo-i2v'
@@ -1218,7 +1218,7 @@ export default function Home() {
       'modelscope-i2v': 40, // 40 seconds for Modelscope I2V
       'text2video-zero-i2v': 40, // 40 seconds for Text2Video Zero
       // Lower-Tier Image-to-Video Models
-      'wan-v2-2-a14b-i2v-lora': 50, // 50 seconds for Wan V2.2 LoRA
+      'wan-2.2-animate': 60, // 60 seconds for Wan 2.2 Animate
       'wan-25-preview-image-to-video': 50, // 50 seconds for WAN-25 Preview
       'kling-video-v2-5-turbo-pro-image-to-video': 60, // 60 seconds for Kling Video V2.5 Turbo Pro
       'cogvideo-i2v': 50, // 50 seconds for CogVideo I2V
@@ -1437,6 +1437,7 @@ export default function Home() {
       modes.push('stable-video-diffusion-i2v'); // Stable Video Diffusion
       modes.push('modelscope-i2v'); // Modelscope I2V
       modes.push('text2video-zero-i2v'); // Text2Video Zero
+      modes.push('wan-2.2-animate'); // Wan 2.2 Animate
       }
     }
     
@@ -1482,7 +1483,7 @@ export default function Home() {
       'modelscope-i2v': 'Modelscope I2V',
       'text2video-zero-i2v': 'Text2Video Zero',
       // Lower-Tier Image-to-Video Models
-      'wan-v2-2-a14b-i2v-lora': 'Wan V2.2 LoRA',
+      'wan-2.2-animate': 'Wan 2.2 Animate',
       'wan-25-preview-image-to-video': 'WAN-25 Preview',
       'kling-video-v2-5-turbo-pro-image-to-video': 'Kling Video V2.5 Turbo Pro',
       'cogvideo-i2v': 'CogVideo I2V',
@@ -1774,7 +1775,7 @@ export default function Home() {
         generationMode === 'stable-video-diffusion-i2v' ||
         generationMode === 'modelscope-i2v' ||
         generationMode === 'text2video-zero-i2v' ||
-        generationMode === 'wan-v2-2-a14b-i2v-lora' ||
+        generationMode === 'wan-2.2-animate' ||
         generationMode === 'wan-25-preview-image-to-video' ||
         generationMode === 'kling-video-v2-5-turbo-pro-image-to-video' ||
         generationMode === 'cogvideo-i2v' ||
@@ -3284,7 +3285,7 @@ export default function Home() {
       generationMode === 'stable-video-diffusion-i2v' ||
       generationMode === 'modelscope-i2v' ||
       generationMode === 'text2video-zero-i2v' ||
-      generationMode === 'wan-v2-2-a14b-i2v-lora' ||
+      generationMode === 'wan-2.2-animate' ||
       generationMode === 'wan-25-preview-image-to-video' ||
       generationMode === 'kling-video-v2-5-turbo-pro-image-to-video' ||
       generationMode === 'cogvideo-i2v' ||
@@ -3316,6 +3317,9 @@ export default function Home() {
         break;
       case 'bytedance/seedream-4':
         await handleSeedream4Generation();
+        break;
+      case 'wan-2.2-animate':
+        await handleWan22AnimateGeneration();
         break;
       case 'gemini-25-flash-image-edit':
         await handleCharacterVariation(); // Use the same handler as nano-banana since it's also character variation
@@ -6356,6 +6360,209 @@ export default function Home() {
   // Text-to-video functions removed - only image-to-video models supported
 
 
+
+  const handleWan22AnimateGeneration = async () => {
+    if (!user) {
+      showAnimatedErrorNotification('Please sign in to generate videos', 'toasty');
+      return;
+    }
+
+    if (uploadedFiles.length < 2) {
+      showAnimatedErrorNotification('Please upload both a video and an image for Wan 2.2 Animate', 'toasty');
+      return;
+    }
+
+    const videoFile = uploadedFiles.find(file => file.fileType === 'video');
+    const imageFile = uploadedFiles.find(file => file.fileType === 'image');
+
+    if (!videoFile || !imageFile) {
+      showAnimatedErrorNotification('Please upload both a video and an image for Wan 2.2 Animate', 'toasty');
+      return;
+    }
+
+    // Create processing item for gallery queuing
+    const processingId = `wan-2.2-animate-${Date.now()}`;
+    const abortController = new AbortController();
+    
+    const processingItem: ProcessingItem = {
+      id: processingId,
+      type: 'video',
+      model: 'wan-2.2-animate',
+      prompt: prompt.trim() || 'Wan 2.2 Animate generation',
+      progress: 0,
+      currentStep: 'Starting Wan 2.2 Animate generation...',
+      startTime: Date.now(),
+      estimatedTime: 60, // 1 minute
+      cancellable: true,
+      abortController
+    };
+    
+    addProcessingItem(processingItem);
+
+    setProcessing({
+      isProcessing: true,
+      progress: 0,
+      currentStep: 'Starting Wan 2.2 Animate generation...'
+    });
+
+    try {
+      // Get authentication token
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        console.error('❌ No active session found');
+        throw new Error('Authentication required - please sign in');
+      }
+
+      // Update processing item
+      updateProcessingItem(processingId, {
+        progress: 20,
+        currentStep: 'Uploading video and image...'
+      });
+
+      setProcessing({
+        isProcessing: true,
+        progress: 20,
+        currentStep: 'Uploading video and image...'
+      });
+
+      // Upload video to Supabase storage
+      const videoFileName = `wan-2.2-animate/video-${Date.now()}-${videoFile.file.name}`;
+      const { data: videoUploadData, error: videoUploadError } = await supabase.storage
+        .from('user-uploads')
+        .upload(videoFileName, videoFile.file);
+
+      if (videoUploadError) {
+        console.error('❌ Video upload error:', videoUploadError);
+        throw new Error('Failed to upload video');
+      }
+
+      // Upload image to Supabase storage
+      const imageFileName = `wan-2.2-animate/image-${Date.now()}-${imageFile.file.name}`;
+      const { data: imageUploadData, error: imageUploadError } = await supabase.storage
+        .from('user-uploads')
+        .upload(imageFileName, imageFile.file);
+
+      if (imageUploadError) {
+        console.error('❌ Image upload error:', imageUploadError);
+        throw new Error('Failed to upload image');
+      }
+
+      // Get public URLs
+      const { data: videoUrlData } = supabase.storage
+        .from('user-uploads')
+        .getPublicUrl(videoFileName);
+      
+      const { data: imageUrlData } = supabase.storage
+        .from('user-uploads')
+        .getPublicUrl(imageFileName);
+
+      const videoUrl = videoUrlData.publicUrl;
+      const imageUrl = imageUrlData.publicUrl;
+
+      // Update processing item
+      updateProcessingItem(processingId, {
+        progress: 40,
+        currentStep: 'Generating with Wan 2.2 Animate...'
+      });
+
+      setProcessing({
+        isProcessing: true,
+        progress: 40,
+        currentStep: 'Generating with Wan 2.2 Animate...'
+      });
+
+      // Call the Wan 2.2 Animate API
+      const response = await fetch('/api/wan-2.2-animate', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${session.access_token}`,
+        },
+        body: JSON.stringify({
+          videoUrl,
+          imageUrl,
+          resolution: '480p',
+          videoQuality: 'high',
+          videoWriteMode: 'balanced',
+          shift: 5,
+          numInferenceSteps: 20,
+          enableSafetyChecker: false,
+          userId: user.id
+        }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to generate video');
+      }
+
+      const result = await response.json();
+      console.log('✅ Wan 2.2 Animate generation result:', result);
+
+      // Update processing item
+      updateProcessingItem(processingId, {
+        progress: 80,
+        currentStep: 'Processing completed!'
+      });
+
+      setProcessing({
+        isProcessing: true,
+        progress: 80,
+        currentStep: 'Processing completed!'
+      });
+
+      // Store the result in the gallery
+      if (result.video?.url) {
+        const { error: galleryError } = await supabase
+          .from('galleries')
+          .insert({
+            user_id: user.id,
+            model_name: 'wan-2.2-animate',
+            prompt: prompt.trim() || 'Wan 2.2 Animate generation',
+            video_url: result.video.url,
+            status: 'completed',
+            created_at: new Date().toISOString()
+          });
+
+        if (galleryError) {
+          console.error('❌ Gallery insert error:', galleryError);
+        }
+      }
+
+      // Update processing item
+      updateProcessingItem(processingId, {
+        progress: 100,
+        currentStep: 'Generation completed!'
+      });
+
+      setProcessing({
+        isProcessing: false,
+        progress: 100,
+        currentStep: 'Generation completed!'
+      });
+
+      // Remove processing item
+      removeProcessingItem(processingId);
+
+      // Show success notification
+      showAnimatedErrorNotification('Wan 2.2 Animate generation completed!', 'success');
+
+      // Gallery is automatically updated via addToGallery in the database insert above
+
+    } catch (error) {
+      console.error('❌ Wan 2.2 Animate generation error:', error);
+      showAnimatedErrorNotification(`User Error: ${error instanceof Error ? error.message : 'Failed to generate video'} TOASTY!`, 'toasty');
+      
+      // Remove the processing item on error
+      removeProcessingItem(processingId);
+      
+      setProcessing({
+        isProcessing: false,
+        progress: 0,
+        currentStep: ''
+      });
+    }
+  };
 
   const handleEndFrameGeneration = async () => {
     if (uploadedFiles.length < 2) {

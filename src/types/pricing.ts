@@ -95,7 +95,7 @@ export const DEFAULT_PRICING_CONFIG: PricingConfig = {
     heavy: {
       monthlyGenerations: 100,
       dailyGenerations: 50,
-      allowedModels: ['nano-banana', 'runway-t2i', 'minimax-2.0', 'kling-2.1-master', 'flux-dev', 'gemini-25-flash-image-edit', 'qwen-image-edit-plus', 'luma-photon-reframe', 'veo3-fast', 'runway-video', 'minimax-video', 'kling-ai-avatar', 'seedance-pro', 'decart-lucy-14b', 'minimax-i2v-director', 'hailuo-02-pro', 'kling-video-pro', 'seedream-3', 'seedance-1-pro', 'bytedance/seedream-4', 'fal-ai/bytedance/seedream/v4/edit', 'minimax-video-01', 'stable-video-diffusion-i2v', 'modelscope-i2v', 'text2video-zero-i2v', 'wan-v2-2-a14b-i2v-lora', 'wan-25-preview-image-to-video', 'kling-video-v2-5-turbo-pro-image-to-video', 'cogvideo-i2v', 'zeroscope-t2v'],
+      allowedModels: ['nano-banana', 'runway-t2i', 'minimax-2.0', 'kling-2.1-master', 'flux-dev', 'gemini-25-flash-image-edit', 'qwen-image-edit-plus', 'luma-photon-reframe', 'veo3-fast', 'runway-video', 'minimax-video', 'kling-ai-avatar', 'seedance-pro', 'decart-lucy-14b', 'minimax-i2v-director', 'hailuo-02-pro', 'kling-video-pro', 'seedream-3', 'seedance-1-pro', 'bytedance/seedream-4', 'fal-ai/bytedance/seedream/v4/edit', 'minimax-video-01', 'stable-video-diffusion-i2v', 'modelscope-i2v', 'text2video-zero-i2v', 'wan-2.2-animate', 'wan-25-preview-image-to-video', 'kling-video-v2-5-turbo-pro-image-to-video', 'cogvideo-i2v', 'zeroscope-t2v'],
       overageRate: 0.04, // $0.04 per generation over limit
       price: 19.99,
     },
@@ -228,7 +228,7 @@ export const DEFAULT_PRICING_CONFIG: PricingConfig = {
       creditWeight: 4,
       allowedTiers: ['light', 'heavy'],
     },
-    'wan-v2-2-a14b-i2v-lora': {
+    'wan-2.2-animate': {
       cost: 0.15,
       creditWeight: 4,
       allowedTiers: ['light', 'heavy'],
