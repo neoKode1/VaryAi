@@ -1068,6 +1068,14 @@ RESPECT THE USER'S CREATIVE VISION - do not standardize or genericize their spec
                 // Nano Banana specific configuration
                 modelConfig = {};
               }
+
+              // Validate prompt length for Nano Banana (200 char limit)
+              const maxPromptLength = modelName === "fal-ai/nano-banana/edit" ? 200 : 500;
+              if (nanoBananaPrompt.length > maxPromptLength) {
+                const truncatedPrompt = nanoBananaPrompt.substring(0, maxPromptLength - 3) + "...";
+                console.warn(`⚠️ Prompt too long (${nanoBananaPrompt.length} chars), truncating to ${maxPromptLength} chars`);
+                nanoBananaPrompt = truncatedPrompt;
+              }
               
               console.log(`\n🚀 ===== NANO BANANA API CALL START =====`);
               console.log(`🎯 [MODEL API] Calling ${modelName} API for ${variation.angle}`);
@@ -1248,6 +1256,21 @@ RESPECT THE USER'S CREATIVE VISION - do not standardize or genericize their spec
             console.error(`❌ [CHARACTER COMBINATION] Failed to generate image for ${variation.angle}:`, error);
             console.error(`🔍 [CHARACTER COMBINATION] Error type:`, typeof error);
             console.error(`🔍 [CHARACTER COMBINATION] Error message:`, error instanceof Error ? error.message : 'Unknown error');
+            
+            // Check for 422 validation errors specifically
+            if (error instanceof Error && (error.message.includes('422') || error.message.includes('validation'))) {
+              console.error(`🚨 422 Validation Error for ${variation.angle}:`, error.message);
+              console.error(`📝 Prompt that failed: "${variation.description}"`);
+              console.error(`🖼️ Image URLs that failed:`, imageUrls);
+              console.error(`🔍 Model used: ${generationMode || 'unknown'}`);
+              
+              return {
+                ...variation,
+                imageUrl: undefined,
+                fileType: 'image',
+                error: `Validation failed: ${error.message}. Images: ${imageUrls?.length || 0}`
+              };
+            }
             
             if (error instanceof Error && 'body' in error) {
               console.error('❌ [CHARACTER COMBINATION] Full error body:', (error as any).body);

@@ -13,6 +13,7 @@ interface StoredVariation extends CharacterVariation {
   videoUrl?: string
   fileType?: 'image' | 'video'
   databaseId?: string // Database primary key for deletion
+  error?: string // Error message if generation failed
 }
 
 interface UserGalleryHook {
@@ -117,7 +118,29 @@ export const useUserGallery = (): UserGalleryHook => {
     if (!user) return
 
     try {
-      const galleryData = variations.map(variation => ({
+      // Filter out variations with errors or missing URLs
+      const validVariations = variations.filter(variation => {
+        const hasValidUrl = variation.imageUrl || variation.videoUrl;
+        const hasNoError = !variation.error;
+        
+        if (!hasValidUrl) {
+          console.warn(`⚠️ Skipping variation ${variation.id} - no valid URL`);
+        }
+        if (variation.error) {
+          console.warn(`⚠️ Skipping variation ${variation.id} - has error: ${variation.error}`);
+        }
+        
+        return hasValidUrl && hasNoError;
+      });
+
+      if (validVariations.length === 0) {
+        console.warn('⚠️ No valid variations to save to database');
+        return;
+      }
+
+      console.log(`💾 Saving ${validVariations.length}/${variations.length} valid variations to database`);
+
+      const galleryData = validVariations.map(variation => ({
         user_id: user.id,
         variation_id: variation.id,
         description: variation.description,
@@ -138,6 +161,8 @@ export const useUserGallery = (): UserGalleryHook => {
         console.error('Error saving to database:', error)
         throw error
       }
+
+      console.log(`✅ Successfully saved ${validVariations.length} variations to database`);
     } catch (error) {
       console.error('Error saving to database:', error)
       throw error
@@ -173,25 +198,31 @@ export const useUserGallery = (): UserGalleryHook => {
     })
 
     if (user) {
-      // Save to database for authenticated users
+      // Save to database for authenticated users (only valid variations)
       await saveToDatabase(storedVariations)
     } else {
-      // Save to localStorage for anonymous users
-      saveToLocalStorage(storedVariations)
+      // Save to localStorage for anonymous users (only valid variations)
+      const validVariations = storedVariations.filter(v => v.imageUrl || v.videoUrl);
+      saveToLocalStorage(validVariations)
     }
 
     setGallery(prev => {
       // Remove any existing duplicates before adding new items
       const existingKeys = new Set(prev.map(item => `${item.id}-${item.timestamp}`));
-      const newItems = storedVariations.filter(item => 
-        !existingKeys.has(`${item.id}-${item.timestamp}`)
-      );
       
-      if (newItems.length !== storedVariations.length) {
-        console.log(`🔄 Filtered out ${storedVariations.length - newItems.length} duplicate items`);
+      // Only add valid variations to the UI gallery
+      const validVariations = storedVariations.filter(item => {
+        const hasValidUrl = item.imageUrl || item.videoUrl;
+        const isNotDuplicate = !existingKeys.has(`${item.id}-${item.timestamp}`);
+        return hasValidUrl && isNotDuplicate;
+      });
+      
+      const invalidCount = storedVariations.length - validVariations.length;
+      if (invalidCount > 0) {
+        console.log(`🔄 Filtered out ${invalidCount} invalid/duplicate items, adding ${validVariations.length} valid items`);
       }
       
-      return [...newItems, ...prev];
+      return [...validVariations, ...prev];
     })
   }, [user, saveToDatabase])
 
