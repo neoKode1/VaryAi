@@ -133,7 +133,9 @@ export async function GET(request: NextRequest) {
         updated_at: new Date().toISOString()
       };
 
-      const { data: newProfile, error: insertError } = await supabase
+      // Use admin client to bypass RLS for profile creation
+      const client = supabaseAdmin || supabase;
+      const { data: newProfile, error: insertError } = await client
         .from('users')
         .insert(defaultProfile)
         .select()
