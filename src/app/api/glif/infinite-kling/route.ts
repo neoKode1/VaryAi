@@ -3,7 +3,7 @@ import { supabaseAdmin } from '@/lib/supabase';
 
 const GLIF_API_URL = 'https://simple-api.glif.app';
 const GLIF_API_KEY = process.env.GLIF_API_KEY;
-const INFINITE_KLING_GLIF_ID = 'clx8q8q8q8q8q8q8q8q8q8q8q'; // Replace with actual Glif ID
+const INFINITE_KLING_GLIF_ID = 'clozwqgs60013l80fkgmtf49o'; // Infinite Kling 2.5 Glif ID
 
 if (!GLIF_API_KEY) {
   console.error('❌ GLIF_API_KEY environment variable is not set');
@@ -35,16 +35,14 @@ export async function POST(request: NextRequest) {
     if (videoUrl) inputs.video = videoUrl;
 
     // Call Glif API for Infinite Kling 2.5
-    const glifResponse = await fetch(GLIF_API_URL, {
+    const glifResponse = await fetch(`${GLIF_API_URL}/${INFINITE_KLING_GLIF_ID}`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
         'Authorization': `Bearer ${GLIF_API_KEY}`,
       },
       body: JSON.stringify({
-        id: INFINITE_KLING_GLIF_ID,
-        inputs,
-        visibility: 'PRIVATE'
+        input: inputs.prompt || inputs.image || inputs.video || 'Generate a video'
       }),
     });
 

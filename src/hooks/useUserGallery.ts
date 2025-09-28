@@ -46,19 +46,31 @@ export const useUserGallery = (): UserGalleryHook => {
         return
       }
 
-      const formattedGallery: StoredVariation[] = data.map((item) => ({
-        id: item.variation_id,
-        description: item.description,
-        angle: item.angle,
-        pose: item.pose,
-        imageUrl: item.image_url, // Use direct URL without optimization for now
-        videoUrl: item.video_url,
-        fileType: item.file_type,
-        timestamp: new Date(item.created_at).getTime(),
-        originalPrompt: item.original_prompt,
-        originalImagePreview: item.original_image_preview,
-        databaseId: item.id // Preserve the database primary key
-      }))
+      const formattedGallery: StoredVariation[] = data.map((item) => {
+        // Debug video URLs
+        if (item.file_type === 'video') {
+          console.log('🎬 Loading video from database:', {
+            id: item.id,
+            videoUrl: item.video_url,
+            hasVideoUrl: !!item.video_url,
+            videoUrlLength: item.video_url?.length || 0
+          });
+        }
+        
+        return {
+          id: item.variation_id,
+          description: item.description,
+          angle: item.angle,
+          pose: item.pose,
+          imageUrl: item.image_url, // Use direct URL without optimization for now
+          videoUrl: item.video_url,
+          fileType: item.file_type,
+          timestamp: new Date(item.created_at).getTime(),
+          originalPrompt: item.original_prompt,
+          originalImagePreview: item.original_image_preview,
+          databaseId: item.id // Preserve the database primary key
+        };
+      })
 
       setGallery(formattedGallery)
     } catch (error) {
@@ -138,14 +150,27 @@ export const useUserGallery = (): UserGalleryHook => {
     originalImagePreview?: string
   ) => {
     const baseTimestamp = Date.now()
-    const storedVariations: StoredVariation[] = newVariations.map((variation, index) => ({
-      ...variation,
-      timestamp: baseTimestamp + index, // Ensure each variation has a unique timestamp
-      originalPrompt,
-      originalImagePreview,
-      // Fix: Properly determine file type based on what's actually present
-      fileType: variation.fileType || (variation.videoUrl ? 'video' : 'image')
-    }))
+    const storedVariations: StoredVariation[] = newVariations.map((variation, index) => {
+      // Debug video variations being added
+      if (variation.videoUrl || variation.fileType === 'video') {
+        console.log('🎬 Adding video variation to gallery:', {
+          id: variation.id,
+          videoUrl: variation.videoUrl,
+          fileType: variation.fileType,
+          hasVideoUrl: !!variation.videoUrl,
+          videoUrlLength: variation.videoUrl?.length || 0
+        });
+      }
+      
+      return {
+        ...variation,
+        timestamp: baseTimestamp + index, // Ensure each variation has a unique timestamp
+        originalPrompt,
+        originalImagePreview,
+        // Fix: Properly determine file type based on what's actually present
+        fileType: variation.fileType || (variation.videoUrl ? 'video' : 'image')
+      };
+    })
 
     if (user) {
       // Save to database for authenticated users

@@ -59,16 +59,35 @@ export async function POST(request: NextRequest) {
 
     // Update the database record with FAL URL
     if (sessionId) {
+      // First try with updated_at, fallback without it if column doesn't exist
+      let updateData = { 
+        fal_url: falUrl,
+        is_processed: true,
+        updated_at: new Date().toISOString()
+      };
+      
       const { error: updateError } = await supabase
         .from('image_uploads')
-        .update({ 
-          fal_url: falUrl,
-          is_processed: true,
-          updated_at: new Date().toISOString()
-        })
+        .update(updateData)
         .eq('public_url', supabaseUrl);
 
-      if (updateError) {
+      // If update fails due to missing updated_at column, try without it
+      if (updateError && updateError.message.includes('updated_at')) {
+        console.warn('⚠️ updated_at column missing, retrying without it...');
+        const { error: retryError } = await supabase
+          .from('image_uploads')
+          .update({ 
+            fal_url: falUrl,
+            is_processed: true
+          })
+          .eq('public_url', supabaseUrl);
+          
+        if (retryError) {
+          console.warn('⚠️ Failed to update database with FAL URL:', retryError.message);
+        } else {
+          console.log('✅ Database updated with FAL URL (without updated_at)');
+        }
+      } else if (updateError) {
         console.warn('⚠️ Failed to update database with FAL URL:', updateError.message);
       } else {
         console.log('✅ Database updated with FAL URL');

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useCallback, useEffect, useMemo, useRef } from 'react';
+import React, { useState, useCallback, useEffect, useMemo, useRef } from 'react';
 import { Upload, Download, Loader2, RotateCcw, Camera, Sparkles, Images, X, Trash2, Plus, ChevronLeft, ChevronRight, ChevronDown, ChevronUp, Edit, MessageCircle, HelpCircle, ArrowRight, ArrowUp, FolderOpen, Grid3X3, User, Settings, Send } from 'lucide-react';
 import { ConversationalChatPanel } from '@/components/conversational-chat-panel'
 import { SmartPromptHandler } from '@/components/SmartPromptHandler'
@@ -6803,7 +6803,9 @@ export default function Home() {
           <div className="space-y-3 p-2">
             {gallery.length === 0 && processingItems.length === 0 ? (
               <div className="text-center py-8">
-                <Images className="w-8 h-8 text-gray-500 mx-auto mb-2" />
+                <div className="text-gray-500 mx-auto mb-2">
+                  <Images size={32} />
+                </div>
                 <p className="text-gray-400 text-xs">No content yet</p>
               </div>
             ) : (
@@ -6919,19 +6921,52 @@ export default function Home() {
                   {/* Content Preview */}
                   <div className="relative w-full h-full">
                     {item.fileType === 'video' ? (
-                      <video
-                        src={item.videoUrl}
-                        className="w-full h-full object-cover rounded-[30px] cursor-pointer"
-                        muted
-                        loop
-                        onMouseEnter={(e) => {
-                          e.currentTarget.play();
-                        }}
-                        onMouseLeave={(e) => {
-                          e.currentTarget.pause();
-                          e.currentTarget.currentTime = 0;
-                        }}
-                      />
+                      <>
+                        {item.videoUrl ? (
+                          <video
+                            src={item.videoUrl}
+                            className="w-full h-full object-cover rounded-[30px] cursor-pointer"
+                            muted
+                            loop
+                            preload="metadata"
+                            onLoadStart={() => {
+                              console.log('🎬 Video load started:', item.videoUrl);
+                            }}
+                            onLoadedData={() => {
+                              console.log('🎬 Video data loaded:', item.videoUrl);
+                            }}
+                            onError={(e) => {
+                              console.error('❌ Video load error:', item.videoUrl, e);
+                              // Show placeholder on error
+                              e.currentTarget.style.display = 'none';
+                              const placeholder = e.currentTarget.nextElementSibling as HTMLElement;
+                              if (placeholder) placeholder.style.display = 'flex';
+                            }}
+                            onMouseEnter={(e) => {
+                              console.log('🎬 Video hover start:', item.videoUrl);
+                              e.currentTarget.play().catch(err => {
+                                console.warn('⚠️ Video autoplay failed:', err);
+                              });
+                            }}
+                            onMouseLeave={(e) => {
+                              console.log('🎬 Video hover end:', item.videoUrl);
+                              e.currentTarget.pause();
+                              e.currentTarget.currentTime = 0;
+                            }}
+                          />
+                        ) : null}
+                        
+                        {/* Video placeholder for failed loads */}
+                        <div 
+                          className="absolute inset-0 bg-gray-800 rounded-[30px] flex items-center justify-center text-white text-sm"
+                          style={{ display: item.videoUrl ? 'none' : 'flex' }}
+                        >
+                          <div className="text-center">
+                            <div className="text-2xl mb-2">🎬</div>
+                            <div>Video unavailable</div>
+                          </div>
+                        </div>
+                      </>
                     ) : (
                       <img
                         src={getProxiedImageUrl(item.imageUrl)}
@@ -7069,7 +7104,7 @@ export default function Home() {
                 onClick={() => setNotification(null)}
                 className="ml-3 text-white hover:text-gray-200 transition-colors"
               >
-                <X className="w-4 h-4" />
+                <X size={16} />
               </button>
             </div>
           </div>
@@ -7334,7 +7369,9 @@ export default function Home() {
                       className="w-16 h-16 rounded-full bg-green-600 hover:bg-green-500 flex items-center justify-center transition-all shadow-lg hover:shadow-xl"
                       title="Upload Image to Start"
                     >
-                      <Upload className="w-8 h-8 text-white" />
+                      <div className="text-white">
+                  <Upload size={32} />
+                </div>
                     </button>
                   </div>
                   
@@ -7359,9 +7396,13 @@ export default function Home() {
                         title="Generate Image"
                       >
                         {processing.isProcessing ? (
-                          <Loader2 className="mobile-send-icon animate-spin" />
+                          <div className="mobile-send-icon animate-spin">
+                            <Loader2 size={20} />
+                          </div>
                         ) : (
-                          <Send className="mobile-send-icon" />
+                          <div className="mobile-send-icon">
+                            <Send size={20} />
+                          </div>
                         )}
                       </button>
                     </div>
@@ -7381,7 +7422,7 @@ export default function Home() {
                       }}
                       className="w-full py-3 px-4 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white rounded-lg font-medium transition-all duration-300 transform hover:scale-105 active:scale-95 flex items-center justify-center gap-2"
                     >
-                      <Camera className="w-5 h-5" />
+                      <Camera size={20} />
                       Quick Shots
                     </button>
                   )}
@@ -7395,7 +7436,9 @@ export default function Home() {
                     >
                       {isGeneratingImages ? (
                         <>
-                          <Loader2 className="w-5 h-5 animate-spin" />
+                          <div className="animate-spin">
+                            <Loader2 size={20} />
+                          </div>
                           Creating...
                         </>
                       ) : (
@@ -7454,7 +7497,7 @@ export default function Home() {
                               className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 text-white rounded-full flex items-center justify-center text-xs hover:bg-red-600 transition-colors"
                               title="Remove image"
                             >
-                              <X className="w-1.5 h-1.5" />
+                              <X size={6} />
                             </button>
                             <div className="absolute bottom-0 left-0 bg-black bg-opacity-50 text-white text-xs px-1 py-0.5 rounded-tr">
                               {file.fileType.toUpperCase()}
@@ -7500,7 +7543,9 @@ export default function Home() {
                               role="button"
                               aria-label={`Upload image to slot ${slotIndex + 1}`}
                             >
-                              <Plus className="w-5 h-5 text-gray-400" />
+                              <div className="text-gray-400">
+                  <Plus size={20} />
+                </div>
                             </div>
                           );
                         })}
@@ -7567,7 +7612,9 @@ export default function Home() {
                       className="w-8 h-8 rounded-full bg-green-600 hover:bg-green-500 flex items-center justify-center transition-colors"
                       title="Upload images"
                     >
-                      <Upload className="w-4 h-4 text-white" />
+                      <div className="text-white">
+                  <Upload size={16} />
+                </div>
                     </button>
                     
                     {/* Generate Button */}
@@ -7580,9 +7627,13 @@ export default function Home() {
                         title="Generate Video"
                       >
                         {processing.isProcessing ? (
-                          <Loader2 className="mobile-send-icon animate-spin" />
+                          <div className="mobile-send-icon animate-spin">
+                            <Loader2 size={20} />
+                          </div>
                         ) : (
-                          <Send className="mobile-send-icon" />
+                          <div className="mobile-send-icon">
+                            <Send size={20} />
+                          </div>
                         )}
                       </button>
                     ) : (
@@ -7594,9 +7645,13 @@ export default function Home() {
                         title="Generate Variation"
                       >
                         {processing.isProcessing ? (
-                          <Loader2 className="mobile-send-icon animate-spin" />
+                          <div className="mobile-send-icon animate-spin">
+                            <Loader2 size={20} />
+                          </div>
                         ) : (
-                          <Send className="mobile-send-icon" />
+                          <div className="mobile-send-icon">
+                            <Send size={20} />
+                          </div>
                         )}
                       </button>
                     )}
@@ -8062,7 +8117,9 @@ export default function Home() {
               {isDragOverMain && (
                 <div className="absolute inset-0 bg-blue-500 bg-opacity-20 border-2 border-dashed border-blue-400 rounded-lg z-50 flex items-center justify-center">
                   <div className="text-center text-blue-200">
-                    <Upload className="w-16 h-16 mx-auto mb-4 text-blue-400" />
+                    <div className="mx-auto mb-4 text-blue-400">
+                      <Upload size={64} />
+                    </div>
                     <p className="text-xl font-semibold mb-2">Drop images here</p>
                     <p className="text-sm opacity-80">Release to upload files</p>
                   </div>
@@ -8127,7 +8184,7 @@ export default function Home() {
                         className="absolute -top-2 -right-2 w-1 h-1 bg-red-500 bg-opacity-80 text-white rounded-full flex items-center justify-center text-xs hover:bg-red-600 transition-colors z-10 border border-white border-opacity-50"
                         title="Remove file"
                       >
-                        <X className="w-0.5 h-0.5" />
+                        <X size={2} />
                       </button>
                       <div className="absolute bottom-0 left-0 bg-black bg-opacity-50 text-white text-xs px-1 py-0.5 rounded-tr">
                         {file.fileType.toUpperCase()}
@@ -8169,7 +8226,9 @@ export default function Home() {
                         role="button"
                         aria-label={`Upload image to slot ${slotIndex + 1}`}
                       >
-                        <Plus className="w-4 h-4 text-gray-400" />
+                        <div className="text-gray-400">
+                          <Plus size={16} />
+                        </div>
                         {dragOverSlot === slotIndex && (
                           <div className="absolute inset-0 bg-blue-500 bg-opacity-30 rounded-lg flex items-center justify-center">
                             <div className="text-white text-xs font-medium bg-blue-600 px-2 py-1 rounded">
@@ -8200,7 +8259,7 @@ export default function Home() {
                             className="text-red-400 hover:text-red-300 transition-colors"
                             aria-label="Remove audio file"
                           >
-                            <X className="w-3 h-3" />
+                            <X size={12} />
                           </button>
                         </div>
                       ) : (
@@ -8208,7 +8267,9 @@ export default function Home() {
                           onClick={() => document.getElementById('audio-input')?.click()}
                           className="flex items-center gap-2 px-3 py-2 bg-gray-700 bg-opacity-50 border border-gray-600 border-opacity-50 rounded-lg hover:bg-opacity-70 transition-all duration-200"
                         >
-                          <Plus className="w-4 h-4 text-gray-400" />
+                          <div className="text-gray-400">
+                          <Plus size={16} />
+                        </div>
                           <span className="text-white text-xs">Upload Audio</span>
                         </button>
                       )}
@@ -8334,7 +8395,9 @@ export default function Home() {
                       onClick={() => setShowAspectRatioModal(true)}
                       className="inline-flex items-center gap-2 px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg transition-colors text-sm font-medium"
                     >
-                      <Settings className="w-4 h-4" />
+                      <div>
+                        <Settings size={16} />
+                      </div>
                       Aspect Ratio & Settings
                     </button>
                   </div>
@@ -8412,7 +8475,9 @@ export default function Home() {
                     className="w-12 h-12 rounded-full bg-green-600 hover:bg-green-500 flex items-center justify-center transition-colors shadow-lg"
                     title="Upload Image"
                   >
-                    <Upload className="w-5 h-5 text-white" />
+                    <div className="text-white">
+                      <Upload size={20} />
+                    </div>
                   </button>
 
                   {/* Generate Button */}
@@ -8425,9 +8490,13 @@ export default function Home() {
                       title="Generate Video"
                     >
                       {processing.isProcessing ? (
-                        <Loader2 className="w-6 h-6 text-white animate-spin" />
+                        <div className="text-white animate-spin">
+                          <Loader2 size={24} />
+                        </div>
                       ) : (
-                        <ArrowRight className="w-6 h-6 text-white" />
+                        <div className="text-white">
+                          <ArrowRight size={24} />
+                        </div>
                       )}
                     </button>
                   ) : (
@@ -8439,9 +8508,13 @@ export default function Home() {
                       title="Generate Variation"
                     >
                       {processing.isProcessing ? (
-                        <Loader2 className="w-6 h-6 text-white animate-spin" />
+                        <div className="text-white animate-spin">
+                          <Loader2 size={24} />
+                        </div>
                       ) : (
-                        <ArrowRight className="w-6 h-6 text-white" />
+                        <div className="text-white">
+                          <ArrowRight size={24} />
+                        </div>
                       )}
                     </button>
                   )}
@@ -8459,7 +8532,9 @@ export default function Home() {
                   >
                     {isGeneratingImages ? (
                       <>
-                        <Loader2 className="w-4 h-4 animate-spin" />
+                        <div className="animate-spin">
+                          <Loader2 size={16} />
+                        </div>
                         Creating...
                       </>
                     ) : (
@@ -8479,7 +8554,9 @@ export default function Home() {
                   className="generate-floating-upload-button"
                   title="Upload Image"
                 >
-                  <Upload className="generate-floating-upload-icon" />
+                  <div className="generate-floating-upload-icon">
+                    <Upload size={20} />
+                  </div>
                 </button>
 
                 {/* Generate Button */}
@@ -8492,9 +8569,13 @@ export default function Home() {
                     title="Generate Image"
                   >
                     {processing.isProcessing ? (
-                      <Loader2 className="generate-floating-icon animate-spin" />
+                      <div className="generate-floating-icon animate-spin">
+                        <Loader2 size={20} />
+                      </div>
                     ) : (
-                      <ArrowRight className="generate-floating-icon" />
+                      <div className="generate-floating-icon">
+                        <ArrowRight size={20} />
+                      </div>
                     )}
                               </button>
                 ) : hasVideoFiles ? (
@@ -8506,9 +8587,13 @@ export default function Home() {
                     title="Generate Video"
                   >
                     {processing.isProcessing ? (
-                      <Loader2 className="generate-floating-icon animate-spin" />
+                      <div className="generate-floating-icon animate-spin">
+                        <Loader2 size={20} />
+                      </div>
                     ) : (
-                      <ArrowRight className="generate-floating-icon" />
+                      <div className="generate-floating-icon">
+                        <ArrowRight size={20} />
+                      </div>
                     )}
                           </button>
                 ) : (
@@ -8520,9 +8605,13 @@ export default function Home() {
                     title="Generate Variation"
                   >
                     {processing.isProcessing ? (
-                      <Loader2 className="generate-floating-icon animate-spin" />
+                      <div className="generate-floating-icon animate-spin">
+                        <Loader2 size={20} />
+                      </div>
                     ) : (
-                      <ArrowRight className="generate-floating-icon" />
+                      <div className="generate-floating-icon">
+                        <ArrowRight size={20} />
+                      </div>
                     )}
                               </button>
                 )}
@@ -8538,7 +8627,9 @@ export default function Home() {
               {/* Header */}
               <div className="flex items-center justify-between mb-3">
                 <h2 className="text-lg font-semibold flex items-center gap-2 text-white">
-                  <Images className="w-5 h-5 text-white" />
+                  <div className="text-white">
+                    <Images size={20} />
+                  </div>
                   Library ({filteredGallery.length})
                 </h2>
                   <button
@@ -8546,7 +8637,7 @@ export default function Home() {
                   className="flex items-center gap-1 px-3 py-1.5 bg-white text-black rounded-lg hover:bg-gray-100 transition-colors text-sm"
                     title="Hide gallery"
                   >
-                  <X className="w-4 h-4" />
+                  <X size={16} />
                   <span className="hidden sm:inline">Close</span>
                   </button>
               </div>
@@ -8554,7 +8645,9 @@ export default function Home() {
               {/* Accordion Gallery */}
               {filteredGallery.length === 0 ? (
                 <div className="text-center py-8">
-                  <Images className="w-12 h-12 text-gray-500 mx-auto mb-4" />
+                  <div className="text-gray-500 mx-auto mb-4">
+                    <Images size={48} />
+                  </div>
                   <p className="text-gray-400 text-base">No content in gallery yet</p>
                 </div>
               ) : (
@@ -8575,18 +8668,20 @@ export default function Home() {
                     >
                       <div className="flex items-center gap-2">
                         <div className="w-5 h-5 bg-gradient-to-r from-purple-500 to-pink-500 rounded-md flex items-center justify-center">
-                          <Images className="w-3 h-3 text-white" />
+                          <div className="text-white">
+                            <Images size={12} />
+                          </div>
                         </div>
                         <div>
                           <h3 className="text-white font-medium text-sm">Recent Creations</h3>
                           <p className="text-gray-400 text-xs">{filteredGallery.length} items</p>
                         </div>
                       </div>
-                      <ChevronDown 
-                        className={`w-4 h-4 text-gray-400 transition-transform duration-200 ${
+                      <div className={`text-gray-400 transition-transform duration-200 ${
                           expandedPrompts.has('mobile-recent') ? 'rotate-180' : ''
-                        }`} 
-                      />
+                        }`}>
+                        <ChevronDown size={16} />
+                      </div>
                 </button>
                     
                     <div className={`transition-all duration-300 ${
@@ -8622,26 +8717,50 @@ export default function Home() {
                               >
                                 <div className="aspect-square">
                           {item.fileType === 'video' ? (
-                            <video
-                              src={item.videoUrl}
-                                      className="w-full h-full object-cover"
-                                      muted
-                                      loop
-                                      playsInline
-                                      preload="metadata"
-                                      onMouseEnter={(e) => {
-                                        console.log('🎬 Mobile video hover start:', item.videoUrl);
-                                        e.currentTarget.play().catch(err => {
-                                          console.warn('⚠️ Mobile video autoplay failed:', err);
-                                        });
-                                      }}
-                                      onMouseLeave={(e) => {
-                                        console.log('🎬 Mobile video hover end:', item.videoUrl);
-                                        e.currentTarget.pause();
-                                        e.currentTarget.currentTime = 0;
-                                      }}
-                                    />
-                                  ) : (
+                            <>
+                              {item.videoUrl ? (
+                                <video
+                                  src={item.videoUrl}
+                                  className="w-full h-full object-cover"
+                                  muted
+                                  loop
+                                  playsInline
+                                  preload="metadata"
+                                  onLoadStart={() => {
+                                    console.log('🎬 Mobile video load started:', item.videoUrl);
+                                  }}
+                                  onLoadedData={() => {
+                                    console.log('🎬 Mobile video data loaded:', item.videoUrl);
+                                  }}
+                                  onError={(e) => {
+                                    console.error('❌ Mobile video load error:', item.videoUrl, e);
+                                  }}
+                                  onMouseEnter={(e) => {
+                                    console.log('🎬 Mobile video hover start:', item.videoUrl);
+                                    e.currentTarget.play().catch(err => {
+                                      console.warn('⚠️ Mobile video autoplay failed:', err);
+                                    });
+                                  }}
+                                  onMouseLeave={(e) => {
+                                    console.log('🎬 Mobile video hover end:', item.videoUrl);
+                                    e.currentTarget.pause();
+                                    e.currentTarget.currentTime = 0;
+                                  }}
+                                />
+                              ) : null}
+                              
+                              {/* Mobile video placeholder for failed loads */}
+                              <div 
+                                className="absolute inset-0 bg-gray-800 rounded-lg flex items-center justify-center text-white text-xs"
+                                style={{ display: item.videoUrl ? 'none' : 'flex' }}
+                              >
+                                <div className="text-center">
+                                  <div className="text-lg mb-1">🎬</div>
+                                  <div>Video unavailable</div>
+                                </div>
+                              </div>
+                            </>
+                          ) : (
                             <img
                               src={getProxiedImageUrl(item.imageUrl)}
                               alt="Gallery item"
@@ -8677,18 +8796,20 @@ export default function Home() {
                     >
                       <div className="flex items-center gap-2">
                         <div className="w-5 h-5 bg-gradient-to-r from-blue-500 to-cyan-500 rounded-md flex items-center justify-center">
-                          <Images className="w-3 h-3 text-white" />
+                          <div className="text-white">
+                            <Images size={12} />
+                          </div>
                         </div>
                         <div>
                           <h3 className="text-white font-medium text-sm">Video Collection</h3>
                           <p className="text-gray-400 text-xs">{filteredGallery.filter(item => item.fileType === 'video').length} videos</p>
                         </div>
                       </div>
-                      <ChevronDown 
-                        className={`w-4 h-4 text-gray-400 transition-transform duration-200 ${
+                      <div className={`text-gray-400 transition-transform duration-200 ${
                           expandedPrompts.has('mobile-videos') ? 'rotate-180' : ''
-                        }`} 
-                      />
+                        }`}>
+                        <ChevronDown size={16} />
+                      </div>
                               </button>
                     
                     <div className={`transition-all duration-300 ${
@@ -8767,18 +8888,20 @@ export default function Home() {
                     >
                       <div className="flex items-center gap-2">
                         <div className="w-5 h-5 bg-gradient-to-r from-green-500 to-emerald-500 rounded-md flex items-center justify-center">
-                          <Images className="w-3 h-3 text-white" />
+                          <div className="text-white">
+                            <Images size={12} />
+                          </div>
                         </div>
                         <div>
                           <h3 className="text-white font-medium text-sm">Image Collection</h3>
                           <p className="text-gray-400 text-xs">{filteredGallery.filter(item => item.fileType === 'image').length} images</p>
                         </div>
                       </div>
-                      <ChevronDown 
-                        className={`w-4 h-4 text-gray-400 transition-transform duration-200 ${
+                      <div className={`text-gray-400 transition-transform duration-200 ${
                           expandedPrompts.has('mobile-images') ? 'rotate-180' : ''
-                        }`} 
-                      />
+                        }`}>
+                        <ChevronDown size={16} />
+                      </div>
                     </button>
                     
                     <div className={`transition-all duration-300 ${
@@ -8830,7 +8953,9 @@ export default function Home() {
                   className="fixed bottom-20 right-4 z-50 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white p-2 rounded-full shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-110"
                   aria-label="Scroll to top"
                 >
-                  <ArrowUp className="w-4 h-4" />
+                  <div>
+                    <ArrowUp size={16} />
+                  </div>
                 </button>
               )}
             </div>
@@ -8850,7 +8975,7 @@ export default function Home() {
                   onClick={() => setShowGallery(false)}
                   className="flex items-center gap-2 px-4 py-2 bg-gray-800 hover:bg-gray-700 text-white rounded-lg transition-colors"
                 >
-                  <X className="w-4 h-4" />
+                  <X size={16} />
                   Close
                 </button>
               </div>
@@ -8859,7 +8984,9 @@ export default function Home() {
               <div className="flex-1 overflow-y-auto">
                 {filteredGallery.length === 0 ? (
                   <div className="text-center py-12">
-                    <Images className="w-16 h-16 text-gray-500 mx-auto mb-4" />
+                    <div className="text-gray-500 mx-auto mb-4">
+                      <Images size={64} />
+                    </div>
                     <p className="text-gray-400 text-lg">No content in gallery yet</p>
                   </div>
                 ) : (
@@ -8880,18 +9007,20 @@ export default function Home() {
                       >
                         <div className="flex items-center gap-3">
                           <div className="w-6 h-6 bg-gradient-to-r from-purple-500 to-pink-500 rounded-md flex items-center justify-center">
-                            <Images className="w-3 h-3 text-white" />
+                            <div className="text-white">
+                            <Images size={12} />
+                          </div>
                           </div>
                           <div>
                             <h3 className="text-white font-medium">Recent Creations</h3>
                             <p className="text-gray-400 text-xs">{filteredGallery.length} items</p>
                           </div>
                         </div>
-                        <ChevronDown 
-                          className={`w-4 h-4 text-gray-400 transition-transform duration-200 ${
+                        <div className={`text-gray-400 transition-transform duration-200 ${
                             expandedPrompts.has('recent') ? 'rotate-180' : ''
-                          }`} 
-                        />
+                          }`}>
+                          <ChevronDown size={16} />
+                        </div>
                       </button>
                       
                       <div className={`overflow-hidden transition-all duration-300 ${
@@ -9056,18 +9185,20 @@ export default function Home() {
                       >
                         <div className="flex items-center gap-3">
                           <div className="w-6 h-6 bg-gradient-to-r from-blue-500 to-cyan-500 rounded-md flex items-center justify-center">
-                            <Images className="w-3 h-3 text-white" />
+                            <div className="text-white">
+                            <Images size={12} />
+                          </div>
                           </div>
                           <div>
                             <h3 className="text-white font-medium">Video Collection</h3>
                             <p className="text-gray-400 text-xs">{filteredGallery.filter(item => item.fileType === 'video').length} videos</p>
                           </div>
                         </div>
-                        <ChevronDown 
-                          className={`w-4 h-4 text-gray-400 transition-transform duration-200 ${
+                        <div className={`text-gray-400 transition-transform duration-200 ${
                             expandedPrompts.has('videos') ? 'rotate-180' : ''
-                          }`} 
-                        />
+                          }`}>
+                          <ChevronDown size={16} />
+                        </div>
                       </button>
                       
                       <div className={`overflow-hidden transition-all duration-300 ${
@@ -9196,18 +9327,20 @@ export default function Home() {
                       >
                         <div className="flex items-center gap-3">
                           <div className="w-6 h-6 bg-gradient-to-r from-green-500 to-emerald-500 rounded-md flex items-center justify-center">
-                            <Images className="w-3 h-3 text-white" />
+                            <div className="text-white">
+                            <Images size={12} />
+                          </div>
                           </div>
                           <div>
                             <h3 className="text-white font-medium">Image Collection</h3>
                             <p className="text-gray-400 text-xs">{filteredGallery.filter(item => item.fileType === 'image').length} images</p>
                           </div>
                         </div>
-                        <ChevronDown 
-                          className={`w-4 h-4 text-gray-400 transition-transform duration-200 ${
+                        <div className={`text-gray-400 transition-transform duration-200 ${
                             expandedPrompts.has('images') ? 'rotate-180' : ''
-                          }`} 
-                        />
+                          }`}>
+                          <ChevronDown size={16} />
+                        </div>
                       </button>
                       
                       <div className={`overflow-hidden transition-all duration-300 ${
@@ -9345,7 +9478,9 @@ export default function Home() {
                   className="fixed bottom-6 right-6 z-50 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white p-3 rounded-full shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-110"
                   aria-label="Scroll to top"
                 >
-                  <ArrowUp className="w-5 h-5" />
+                  <div>
+                    <ArrowUp size={20} />
+                  </div>
                 </button>
               )}
 
@@ -9395,7 +9530,7 @@ export default function Home() {
               onClick={closeFullScreen}
               className="absolute top-4 right-4 text-white hover:text-gray-300 transition-colors z-10 bg-black bg-opacity-50 rounded-full p-2"
             >
-              <X className="w-6 h-6" />
+              <X size={24} />
                           </button>
 
             {/* Action buttons row - Positioned higher to avoid mobile footer */}
@@ -9413,7 +9548,9 @@ export default function Home() {
                 className="w-12 h-12 bg-blue-600/80 hover:bg-blue-600 text-white rounded-full flex items-center justify-center transition-all duration-300 hover:scale-110"
                 title="Edit image"
               >
-                <Edit className="w-6 h-6" />
+                <div>
+                  <Edit size={24} />
+                </div>
               </button>
 
               {/* Vary button */}
@@ -9433,7 +9570,9 @@ export default function Home() {
                 className="w-12 h-12 bg-purple-600/80 hover:bg-purple-600 text-white rounded-full flex items-center justify-center transition-all duration-300 hover:scale-110"
                 title="Generate variations"
               >
-                <Sparkles className="w-6 h-6" />
+                <div>
+                  <Sparkles size={24} />
+                </div>
               </button>
 
               {/* Download button */}
@@ -9457,7 +9596,9 @@ export default function Home() {
                 className="w-12 h-12 bg-green-600/80 hover:bg-green-600 text-white rounded-full flex items-center justify-center transition-all duration-300 hover:scale-110"
                 title="Download file"
               >
-                <Download className="w-6 h-6" />
+                <div>
+                  <Download size={24} />
+                </div>
               </button>
             </div>
 
@@ -9471,7 +9612,9 @@ export default function Home() {
                   }}
                   className="absolute left-4 top-1/2 transform -translate-y-1/2 text-white hover:text-gray-300 transition-colors z-10 bg-black bg-opacity-50 rounded-full p-2"
                 >
-                  <ChevronLeft className="w-6 h-6" />
+                  <div>
+                    <ChevronLeft size={24} />
+                  </div>
                 </button>
                 <button
                   onClick={(e) => {
@@ -9480,7 +9623,9 @@ export default function Home() {
                   }}
                   className="absolute right-4 top-1/2 transform -translate-y-1/2 text-white hover:text-gray-300 transition-colors z-10 bg-black bg-opacity-50 rounded-full p-2"
                 >
-                  <ChevronRight className="w-6 h-6" />
+                  <div>
+                    <ChevronRight size={24} />
+                  </div>
                 </button>
               </>
             )}
@@ -9498,7 +9643,7 @@ export default function Home() {
               className="absolute top-4 right-4 bg-black bg-opacity-50 hover:bg-opacity-70 text-white p-2 rounded-full transition-all duration-200 z-10"
               title="Close full screen"
             >
-              <X className="w-6 h-6" />
+              <X size={24} />
             </button>
 
             {/* Current Image Details */}
@@ -9527,7 +9672,7 @@ export default function Home() {
                   onClick={() => setShowPromptGuide(false)}
                   className="text-gray-400 hover:text-white transition-colors"
                 >
-                  <X className="w-6 h-6" />
+                  <X size={24} />
                 </button>
               </div>
               
@@ -9621,7 +9766,7 @@ export default function Home() {
                   }}
                   className="text-gray-400 hover:text-white transition-colors"
                 >
-                  <X className="w-6 h-6" />
+                  <X size={24} />
                               </button>
                       </div>
 

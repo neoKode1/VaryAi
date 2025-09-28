@@ -26,16 +26,14 @@ export async function POST(request: NextRequest) {
     console.log('🎬 Glif API request:', { glifId, inputs, visibility });
 
     // Call Glif API
-    const glifResponse = await fetch(GLIF_API_URL, {
+    const glifResponse = await fetch(`${GLIF_API_URL}/${glifId}`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
         'Authorization': `Bearer ${GLIF_API_KEY}`,
       },
       body: JSON.stringify({
-        id: glifId,
-        inputs,
-        visibility
+        input: typeof inputs === 'string' ? inputs : JSON.stringify(inputs)
       }),
     });
 
