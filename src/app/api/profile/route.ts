@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { createClient } from '@supabase/supabase-js';
 import { supabase, supabaseAdmin } from '@/lib/supabase';
 
 export async function GET(request: NextRequest) {
@@ -50,11 +51,22 @@ export async function GET(request: NextRequest) {
     console.log('🔍 [GALLERY DEBUG] User ID:', user.id);
     console.log('🔍 [GALLERY DEBUG] User email:', user.email);
     
-    // Use the same admin client for gallery query
-    const { data: gallery, error: galleryError } = await client
+    // Create a user-authenticated client for gallery query
+    const userClient = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+      {
+        global: {
+          headers: {
+            Authorization: `Bearer ${token}`
+          }
+        }
+      }
+    );
+    
+    const { data: gallery, error: galleryError } = await userClient
       .from('galleries')
       .select('*')
-      .eq('user_id', user.id)
       .order('created_at', { ascending: false });
 
     if (galleryError) {
@@ -133,9 +145,20 @@ export async function GET(request: NextRequest) {
         updated_at: new Date().toISOString()
       };
 
-      // Use admin client to bypass RLS for profile creation
-      const client = supabaseAdmin || supabase;
-      const { data: newProfile, error: insertError } = await client
+      // Create a user-authenticated client for profile creation
+      const userClient = createClient(
+        process.env.NEXT_PUBLIC_SUPABASE_URL!,
+        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+        {
+          global: {
+            headers: {
+              Authorization: `Bearer ${token}`
+            }
+          }
+        }
+      );
+      
+      const { data: newProfile, error: insertError } = await userClient
         .from('users')
         .insert(defaultProfile)
         .select()
@@ -239,8 +262,20 @@ export async function PUT(request: NextRequest) {
         updated_at: new Date().toISOString()
       };
 
-      // Use admin client to bypass RLS for profile creation
-      const { data: createdProfile, error: createError } = await client
+      // Create a user-authenticated client for profile creation
+      const userClient = createClient(
+        process.env.NEXT_PUBLIC_SUPABASE_URL!,
+        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+        {
+          global: {
+            headers: {
+              Authorization: `Bearer ${token}`
+            }
+          }
+        }
+      );
+      
+      const { data: createdProfile, error: createError } = await userClient
         .from('users')
         .insert(newProfileData)
         .select()
