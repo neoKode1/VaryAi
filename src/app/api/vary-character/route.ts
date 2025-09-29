@@ -1072,9 +1072,19 @@ RESPECT THE USER'S CREATIVE VISION - do not standardize or genericize their spec
               // Validate prompt length for Nano Banana (200 char limit)
               const maxPromptLength = modelName === "fal-ai/nano-banana/edit" ? 200 : 500;
               if (nanoBananaPrompt.length > maxPromptLength) {
-                const truncatedPrompt = nanoBananaPrompt.substring(0, maxPromptLength - 3) + "...";
-                console.warn(`⚠️ Prompt too long (${nanoBananaPrompt.length} chars), truncating to ${maxPromptLength} chars`);
-                nanoBananaPrompt = truncatedPrompt;
+                console.warn(`⚠️ Prompt too long (${nanoBananaPrompt.length} chars) for ${modelName}, truncating to ${maxPromptLength} chars`);
+                
+                // Smart truncation: keep the core prompt and variation angle
+                const corePrompt = prompt.substring(0, maxPromptLength - 50); // Reserve space for variation
+                const variationText = ` - ${variation.angle.toLowerCase()}`;
+                nanoBananaPrompt = corePrompt + variationText;
+                
+                // If still too long, truncate more aggressively
+                if (nanoBananaPrompt.length > maxPromptLength) {
+                  nanoBananaPrompt = nanoBananaPrompt.substring(0, maxPromptLength - 3) + "...";
+                }
+                
+                console.warn(`⚠️ Truncated prompt: "${nanoBananaPrompt}" (${nanoBananaPrompt.length} chars)`);
               }
               
               console.log(`\n🚀 ===== NANO BANANA API CALL START =====`);
@@ -1264,11 +1274,19 @@ RESPECT THE USER'S CREATIVE VISION - do not standardize or genericize their spec
               console.error(`🖼️ Image URLs that failed:`, imageUrls);
               console.error(`🔍 Model used: ${generationMode || 'unknown'}`);
               
+              // Provide user-friendly error message
+              let userError = 'Generation failed due to input validation. ';
+              if (variation.description && variation.description.length > 150) {
+                userError += 'Prompt likely too long (over 200 characters). ';
+              }
+              userError += 'Try shortening your prompt or using different images.';
+              
               return {
                 ...variation,
                 imageUrl: undefined,
                 fileType: 'image',
-                error: `Validation failed: ${error.message}. Images: ${imageUrls?.length || 0}`
+                error: userError,
+                description: `${variation.description} (Failed: ${userError})`
               };
             }
             
@@ -1303,6 +1321,20 @@ RESPECT THE USER'S CREATIVE VISION - do not standardize or genericize their spec
 
     console.log('🎉 API request completed successfully!');
     console.log('📊 Variations with images generated:', variationsWithImages.map(v => v.angle).join(', '));
+    
+    // Check for failed variations and provide summary
+    const failedVariations = variationsWithImages.filter(v => (v as any).error);
+    const successfulVariations = variationsWithImages.filter(v => !(v as any).error && v.imageUrl);
+    
+    if (failedVariations.length > 0) {
+      console.warn(`⚠️ ${failedVariations.length}/${variationsWithImages.length} variations failed:`, 
+        failedVariations.map(v => `${v.angle} (${(v as any).error})`).join(', '));
+    }
+    
+    if (successfulVariations.length === 0) {
+      console.error('❌ All variations failed to generate images');
+      throw new Error(`All ${variationsWithImages.length} variations failed. Most common issue: prompts over 200 characters. Try shortening your prompt.`);
+    }
     
     // Record success for circuit breaker
     recordSuccess();
