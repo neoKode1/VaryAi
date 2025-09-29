@@ -30,13 +30,23 @@ export async function GET(request: NextRequest) {
 
     console.log('✅ User authenticated:', user.id);
 
-    // Get user profile from database using admin client
+    // Get user profile from database using user-authenticated client
     console.log('📊 Fetching user profile from database...');
-    const client = supabaseAdmin || supabase;
-    const { data: profile, error: profileError } = await client
+    const userClient = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+      {
+        global: {
+          headers: {
+            Authorization: `Bearer ${token}`
+          }
+        }
+      }
+    );
+    
+    const { data: profile, error: profileError } = await userClient
       .from('users')
       .select('*')
-      .eq('id', user.id)
       .single();
 
     if (profileError && profileError.code !== 'PGRST116') {
@@ -50,19 +60,6 @@ export async function GET(request: NextRequest) {
     console.log('🖼️ Fetching user gallery...');
     console.log('🔍 [GALLERY DEBUG] User ID:', user.id);
     console.log('🔍 [GALLERY DEBUG] User email:', user.email);
-    
-    // Create a user-authenticated client for gallery query
-    const userClient = createClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-      {
-        global: {
-          headers: {
-            Authorization: `Bearer ${token}`
-          }
-        }
-      }
-    );
     
     const { data: gallery, error: galleryError } = await userClient
       .from('galleries')
@@ -222,12 +219,23 @@ export async function PUT(request: NextRequest) {
 
     console.log('Updating profile with data:', updateData);
 
-    // First, check if profile exists using admin client
-    const client = supabaseAdmin || supabase;
-    const { data: existingProfile, error: fetchError } = await client
+    // Create user-authenticated client for profile operations
+    const userClient = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+      {
+        global: {
+          headers: {
+            Authorization: `Bearer ${token}`
+          }
+        }
+      }
+    );
+    
+    // First, check if profile exists using user client
+    const { data: existingProfile, error: fetchError } = await userClient
       .from('users')
       .select('id')
-      .eq('id', user.id)
       .single();
 
     let updatedProfile;
@@ -299,12 +307,10 @@ export async function PUT(request: NextRequest) {
         code: fetchError.code 
       }, { status: 500 });
     } else {
-      // Profile exists, update it using admin client, fallback to regular client
-      const client = supabaseAdmin || supabase;
-      const { data: updated, error: updateErr } = await client
+      // Profile exists, update it using user client
+      const { data: updated, error: updateErr } = await userClient
         .from('users')
         .update(updateData)
-        .eq('id', user.id)
         .select()
         .single();
 
