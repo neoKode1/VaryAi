@@ -29,8 +29,8 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Get the raw body as text to preserve exact formatting
-    const body = await request.text();
+    // Get the raw body as Buffer to preserve exact formatting for signature verification
+    const body = await request.arrayBuffer();
     const signature = request.headers.get('stripe-signature');
 
     // Debug logging
@@ -50,7 +50,7 @@ export async function POST(request: NextRequest) {
     let event: Stripe.Event;
 
     try {
-      event = stripe.webhooks.constructEvent(body, signature, webhookSecret);
+      event = stripe.webhooks.constructEvent(Buffer.from(body), signature, webhookSecret);
       console.log('✅ Webhook signature verified successfully');
     } catch (err: any) {
       console.error('❌ Webhook signature verification failed:', {
@@ -194,7 +194,7 @@ async function handleCreditPackPurchase(session: Stripe.Checkout.Session, userId
 
   // Calculate credits based on amount paid
   const amountPaid = session.amount_total || 0;
-  const credits = Math.floor(amountPaid / 0.04); // $0.04 per credit
+  const credits = Math.floor(amountPaid / 0.05); // $0.05 per credit (625 cents / 5 = 125 credits)
 
   if (credits <= 0) {
     console.error('❌ Invalid credit amount calculated:', { amountPaid, credits });
