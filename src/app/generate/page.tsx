@@ -7704,7 +7704,7 @@ export default function Home() {
                       )}
                       
                       {/* Hover overlay with action buttons */}
-                      <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col justify-between p-3">
+                      <div className="absolute inset-0 bg-black/50 opacity-50 group-hover:opacity-100 transition-opacity duration-300 flex flex-col justify-between p-3">
                         {/* Top section with variant info */}
                         <div className="text-white text-sm">
                           <p className="font-medium">Variant 1</p>
@@ -7813,7 +7813,7 @@ export default function Home() {
                       )}
                       
                       {/* Hover overlay with action buttons */}
-                      <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col justify-between p-3">
+                      <div className="absolute inset-0 bg-black/50 opacity-50 group-hover:opacity-100 transition-opacity duration-300 flex flex-col justify-between p-3">
                         {/* Top section with variant info */}
                         <div className="text-white text-sm">
                           <p className="font-medium">Variant 2</p>
@@ -7922,7 +7922,7 @@ export default function Home() {
                       )}
                       
                       {/* Hover overlay with action buttons */}
-                      <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col justify-between p-3">
+                      <div className="absolute inset-0 bg-black/50 opacity-50 group-hover:opacity-100 transition-opacity duration-300 flex flex-col justify-between p-3">
                         {/* Top section with variant info */}
                         <div className="text-white text-sm">
                           <p className="font-medium">Variant 3</p>
@@ -8031,7 +8031,7 @@ export default function Home() {
                       )}
                       
                       {/* Hover overlay with action buttons */}
-                      <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col justify-between p-3">
+                      <div className="absolute inset-0 bg-black/50 opacity-50 group-hover:opacity-100 transition-opacity duration-300 flex flex-col justify-between p-3">
                         {/* Top section with variant info */}
                         <div className="text-white text-sm">
                           <p className="font-medium">Variant 4</p>
