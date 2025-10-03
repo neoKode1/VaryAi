@@ -64,12 +64,12 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(
         { 
           error: 'Invalid signature',
-          details: err.message,
-          debug: {
-            bodyLength: body.length,
-            signaturePresent: !!signature,
-            webhookSecretPresent: !!webhookSecret
-          }
+        details: err.message,
+        debug: {
+          bodyLength: body.byteLength,
+          signaturePresent: !!signature,
+          webhookSecretPresent: !!webhookSecret
+        }
         },
         { status: 400 }
       );
