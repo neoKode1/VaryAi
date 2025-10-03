@@ -65,23 +65,55 @@ export async function GET(request: NextRequest) {
     console.log(`🎬 Proxying video from: ${videoUrl}`);
     console.log(`🔍 Parsed URL hostname: ${new URL(videoUrl).hostname}`);
     
+    // Check if this is a FAL AI video URL that might need authentication
+    const url = new URL(videoUrl);
+    const isFalVideo = url.hostname.includes('fal.media') || url.hostname.includes('fal.ai');
+    
+    // Prepare headers
+    const headers: HeadersInit = {
+      'User-Agent': 'Mozilla/5.0 (compatible; vARI-Ai/1.0)',
+      'Accept': 'video/*,*/*;q=0.9',
+      'Accept-Encoding': 'gzip, deflate, br',
+      'Cache-Control': 'no-cache',
+      'Referer': 'https://varyai.app/',
+    };
+    
+    // Add FAL AI authentication if available
+    if (isFalVideo && process.env.FAL_KEY) {
+      headers['Authorization'] = `Key ${process.env.FAL_KEY}`;
+    }
+    
     // Fetch the video with proper headers
     const response = await fetch(videoUrl, {
       method: 'GET',
-      headers: {
-        'User-Agent': 'Mozilla/5.0 (compatible; vARI-Ai/1.0)',
-        'Accept': 'video/*,*/*;q=0.9',
-        'Accept-Encoding': 'gzip, deflate, br',
-        'Cache-Control': 'no-cache',
-      },
+      headers,
       // Add timeout to prevent hanging requests
       signal: AbortSignal.timeout(30000) // 30 second timeout
     });
     
     if (!response.ok) {
       console.error(`❌ Video fetch failed: ${response.status} - ${response.statusText}`);
+      
+      // Handle specific error cases
+      if (response.status === 403) {
+        return NextResponse.json({
+          error: 'Video access forbidden - URL may have expired or require authentication',
+          details: `Original URL: ${videoUrl}`,
+          suggestion: 'Try regenerating the content'
+        }, { status: 403 });
+      }
+      
+      if (response.status === 404) {
+        return NextResponse.json({
+          error: 'Video not found - URL may have expired',
+          details: `Original URL: ${videoUrl}`,
+          suggestion: 'Try regenerating the content'
+        }, { status: 404 });
+      }
+      
       return NextResponse.json({
-        error: `Failed to fetch video: ${response.status} ${response.statusText}`
+        error: `Failed to fetch video: ${response.status} ${response.statusText}`,
+        details: `Original URL: ${videoUrl}`
       }, { status: response.status });
     }
     
