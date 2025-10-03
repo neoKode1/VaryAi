@@ -90,38 +90,38 @@ export class CreditService {
       // Calculate credits required using weighted system
       const creditsRequired = weightedCreditService.calculateCreditsRequired(modelName);
 
-      // Get user's available credits - check both user_credits table and users.credit_balance
+      // Get user's available credits - prioritize users.credit_balance over user_credits table
       let availableCredits = 0;
       
-      // First, try user_credits table
-      const { data: creditData, error: creditError } = await supabaseAdmin
-        .from('user_credits')
-        .select('available_credits')
-        .eq('user_id', userId)
-        .eq('is_active', true)
-        .order('created_at', { ascending: false })
-        .limit(1)
+      // First, check users.credit_balance (primary source)
+      const { data: userBalanceData, error: userBalanceError } = await supabaseAdmin
+        .from('users')
+        .select('credit_balance')
+        .eq('id', userId)
         .single();
 
-      if (creditData && !creditError) {
-        availableCredits = Number(creditData.available_credits);
+      if (userBalanceData && !userBalanceError) {
+        availableCredits = Number(userBalanceData.credit_balance || 0);
       } else {
-        // If not found in user_credits, check users.credit_balance
-        const { data: userData, error: userError } = await supabaseAdmin
-          .from('users')
-          .select('credit_balance')
-          .eq('id', userId)
+        // Fallback to user_credits table if users.credit_balance is not available
+        const { data: creditData, error: creditError } = await supabaseAdmin
+          .from('user_credits')
+          .select('available_credits')
+          .eq('user_id', userId)
+          .eq('is_active', true)
+          .order('created_at', { ascending: false })
+          .limit(1)
           .single();
 
-        if (userData && !userError) {
-          availableCredits = Number(userData.credit_balance || 0);
+        if (creditData && !creditError) {
+          availableCredits = Number(creditData.available_credits);
         } else {
           return {
             hasCredits: false,
             availableCredits: 0,
             modelCost: Number(modelData.cost_per_generation),
             creditsRequired,
-            error: 'No credits found for user in either user_credits or users table'
+            error: 'No credits found for user in either users.credit_balance or user_credits table'
           };
         }
       }

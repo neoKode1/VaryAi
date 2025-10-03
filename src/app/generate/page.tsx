@@ -3262,7 +3262,7 @@ export default function Home() {
     const creditCheck = await checkUserCredits(modelName);
     
     if (!creditCheck.hasCredits) {
-      const errorMessage = creditCheck.error || `Insufficient credits! You need $${creditCheck.modelCost.toFixed(4)} but only have $${creditCheck.availableCredits.toFixed(2)}. Purchase more credits to continue.`;
+      const errorMessage = creditCheck.error || `Insufficient credits! You need ${creditCheck.creditsRequired} credits ($${creditCheck.modelCost.toFixed(4)}) but only have ${creditCheck.availableCredits} credits. Purchase more credits to continue.`;
       showAnimatedErrorNotification(`Credit Error: ${errorMessage} TOASTY!`, 'toasty');
       return false;
     }

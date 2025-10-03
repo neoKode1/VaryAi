@@ -5,6 +5,7 @@ interface CreditCheckResult {
   hasCredits: boolean;
   availableCredits: number;
   modelCost: number;
+  creditsRequired: number;
   error?: string;
 }
 
@@ -26,6 +27,7 @@ export const useCreditCheck = () => {
         hasCredits: false,
         availableCredits: 0,
         modelCost: 0,
+        creditsRequired: 0,
         error: 'User not authenticated'
       };
     }
@@ -58,6 +60,7 @@ export const useCreditCheck = () => {
         hasCredits: false,
         availableCredits: 0,
         modelCost: 0,
+        creditsRequired: 0,
         error: error instanceof Error ? error.message : 'Unknown error'
       };
     } finally {
