@@ -7753,11 +7753,11 @@ export default function Home() {
                                 window.URL.revokeObjectURL(downloadUrl);
                               } catch (error) {
                                 console.error('Download failed:', error);
-                                // Fallback to direct link
+                                // Fallback to direct link without opening new window
                                 const link = document.createElement('a');
                                 link.href = variations[0].imageUrl;
                                 link.download = `vary-ai-variant-1-${variations[0].id}.jpg`;
-                                link.target = '_blank';
+                                link.rel = 'noopener noreferrer';
                                 document.body.appendChild(link);
                                 link.click();
                                 document.body.removeChild(link);
@@ -7862,11 +7862,11 @@ export default function Home() {
                                 window.URL.revokeObjectURL(downloadUrl);
                               } catch (error) {
                                 console.error('Download failed:', error);
-                                // Fallback to direct link
+                                // Fallback to direct link without opening new window
                                 const link = document.createElement('a');
                                 link.href = variations[1].imageUrl;
                                 link.download = `vary-ai-variant-2-${variations[1].id}.jpg`;
-                                link.target = '_blank';
+                                link.rel = 'noopener noreferrer';
                                 document.body.appendChild(link);
                                 link.click();
                                 document.body.removeChild(link);
@@ -7971,11 +7971,11 @@ export default function Home() {
                                 window.URL.revokeObjectURL(downloadUrl);
                               } catch (error) {
                                 console.error('Download failed:', error);
-                                // Fallback to direct link
+                                // Fallback to direct link without opening new window
                                 const link = document.createElement('a');
                                 link.href = variations[2].imageUrl;
                                 link.download = `vary-ai-variant-3-${variations[2].id}.jpg`;
-                                link.target = '_blank';
+                                link.rel = 'noopener noreferrer';
                                 document.body.appendChild(link);
                                 link.click();
                                 document.body.removeChild(link);
@@ -8080,11 +8080,11 @@ export default function Home() {
                                 window.URL.revokeObjectURL(downloadUrl);
                               } catch (error) {
                                 console.error('Download failed:', error);
-                                // Fallback to direct link
+                                // Fallback to direct link without opening new window
                                 const link = document.createElement('a');
                                 link.href = imageUrl;
                                 link.download = `vary-ai-variant-4-${variations[3].id}.jpg`;
-                                link.target = '_blank';
+                                link.rel = 'noopener noreferrer';
                                 document.body.appendChild(link);
                                 link.click();
                                 document.body.removeChild(link);
