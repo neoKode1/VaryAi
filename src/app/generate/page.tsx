@@ -6924,7 +6924,7 @@ export default function Home() {
                       <>
                         {item.videoUrl ? (
                           <video
-                            src={item.videoUrl}
+                            src={getProxiedVideoUrl(item.videoUrl)}
                             className="w-full h-full object-cover rounded-[30px] cursor-pointer"
                             muted
                             loop
@@ -7189,7 +7189,7 @@ export default function Home() {
                     <div className="relative w-full h-full">
                       {variations[currentImageIndex]?.fileType === 'video' ? (
                         <video
-                          src={variations[currentImageIndex].videoUrl}
+                          src={getProxiedVideoUrl(variations[currentImageIndex].videoUrl)}
                           className="w-full h-full object-cover cursor-pointer"
                           controls
                           muted
@@ -7310,7 +7310,7 @@ export default function Home() {
                     >
                       {variation.fileType === 'video' ? (
                         <video
-                          src={variation.videoUrl}
+                          src={getProxiedVideoUrl(variation.videoUrl)}
                           className="w-full h-full object-cover cursor-pointer"
                           muted
                           loop
@@ -7673,7 +7673,7 @@ export default function Home() {
                     <div className="relative w-full h-full">
                       {variations[0].fileType === 'video' ? (
                         <video
-                          src={variations[0].videoUrl}
+                          src={getProxiedVideoUrl(variations[0].videoUrl)}
                           className="w-full h-full object-cover rounded-[30px] cursor-pointer"
                           muted
                           loop
@@ -7782,7 +7782,7 @@ export default function Home() {
                     <div className="relative w-full h-full">
                       {variations[1].fileType === 'video' ? (
                         <video
-                          src={variations[1].videoUrl}
+                          src={getProxiedVideoUrl(variations[1].videoUrl)}
                           className="w-full h-full object-cover rounded-[30px] cursor-pointer"
                           muted
                           loop
@@ -7891,7 +7891,7 @@ export default function Home() {
                     <div className="relative w-full h-full">
                       {variations[2].fileType === 'video' ? (
                         <video
-                          src={variations[2].videoUrl}
+                          src={getProxiedVideoUrl(variations[2].videoUrl)}
                           className="w-full h-full object-cover rounded-[30px] cursor-pointer"
                           muted
                           loop
@@ -8000,7 +8000,7 @@ export default function Home() {
                     <div className="relative w-full h-full">
                       {variations[3].fileType === 'video' ? (
                         <video
-                          src={variations[3].videoUrl}
+                          src={getProxiedVideoUrl(variations[3].videoUrl)}
                           className="w-full h-full object-cover rounded-[30px] cursor-pointer"
                           muted
                           loop
@@ -8720,7 +8720,7 @@ export default function Home() {
                             <>
                               {item.videoUrl ? (
                                 <video
-                                  src={item.videoUrl}
+                                  src={getProxiedVideoUrl(item.videoUrl)}
                                   className="w-full h-full object-cover"
                                   muted
                                   loop
@@ -8844,7 +8844,7 @@ export default function Home() {
                               >
                                 <div className="aspect-square">
                                   <video
-                                    src={item.videoUrl}
+                                    src={getProxiedVideoUrl(item.videoUrl)}
                                     className="w-full h-full object-cover"
                                     muted
                                     loop
@@ -9058,7 +9058,7 @@ export default function Home() {
                           <div className="aspect-square">
                             {item.fileType === 'video' ? (
                               <video
-                                src={item.videoUrl}
+                                src={getProxiedVideoUrl(item.videoUrl)}
                                 className="w-full h-full object-cover"
                                 muted
                                 loop
@@ -9225,7 +9225,7 @@ export default function Home() {
                                 >
                                   <div className="aspect-square">
                                     <video
-                                      src={item.videoUrl}
+                                      src={getProxiedVideoUrl(item.videoUrl)}
                                       className="w-full h-full object-cover"
                                       muted
                                       loop
