@@ -35,7 +35,7 @@ export async function POST(request: NextRequest) {
 
     // Debug logging
     console.log('🔍 Webhook Debug Info:');
-    console.log('- Body length:', body.length);
+    console.log('- Body length:', body.byteLength);
     console.log('- Signature present:', !!signature);
     console.log('- Webhook secret present:', !!webhookSecret);
 
