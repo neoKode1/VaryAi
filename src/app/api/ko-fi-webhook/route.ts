@@ -30,7 +30,7 @@ const KOFI_CONFIG = {
   pageUrl: 'https://ko-fi.com/vari-ai',
   weeklyGoal: 300,
   weeklyCost: 265,
-  webhookUrl: 'https://vary-ai.vercel.app/api/ko-fi-webhook'
+  webhookUrl: 'https://varyai.app/api/ko-fi-webhook'
 };
 
 export async function POST(request: NextRequest) {

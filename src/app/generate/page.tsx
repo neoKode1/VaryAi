@@ -1682,7 +1682,7 @@ export default function Home() {
     // Check if URL needs proxying (external domains that might be blocked)
     try {
       const url = new URL(originalUrl);
-      const needsProxy = !url.hostname.includes('vary-ai.vercel.app') && 
+      const needsProxy = !url.hostname.includes('vary-ai.vercel.app') && !url.hostname.includes('varyai.app') && 
                         !url.hostname.includes('localhost') &&
                         !url.hostname.includes('127.0.0.1');
       

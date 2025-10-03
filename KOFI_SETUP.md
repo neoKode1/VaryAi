@@ -2,7 +2,7 @@
 
 ## Configuration Details
 - **Ko-fi Page**: https://ko-fi.com/vari-ai
-- **Webhook URL**: https://vary-ai.vercel.app/api/ko-fi-webhook
+- **Webhook URL**: https://varyai.app/api/ko-fi-webhook
 - **Verification Token**: 31c45be4-fa06-4c91-869c-6c0b199d5222
 - **Weekly Goal**: $300
 - **Weekly Cost**: $265
@@ -15,7 +15,7 @@ KOFI_VERIFICATION_TOKEN=31c45be4-fa06-4c91-869c-6c0b199d5222
 
 ## Ko-fi Webhook Settings
 1. Go to: https://ko-fi.com/manage/webhooks
-2. Set Webhook URL to: `https://vary-ai.vercel.app/api/ko-fi-webhook`
+2. Set Webhook URL to: `https://varyai.app/api/ko-fi-webhook`
 3. Use the verification token: `31c45be4-fa06-4c91-869c-6c0b199d5222`
 
 ## How It Works
