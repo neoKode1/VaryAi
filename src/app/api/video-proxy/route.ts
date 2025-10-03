@@ -31,6 +31,7 @@ export async function GET(request: NextRequest) {
       'api.minimax.io',
       'cdn.fal.ai',
       'v3.fal.media', // FAL AI video hosting
+      'v3b.fal.media', // Add the missing subdomain
       'storage.googleapis.com',
       's3.amazonaws.com',
       'cdn.runwayml.com',
