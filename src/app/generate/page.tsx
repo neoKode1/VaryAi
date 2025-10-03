@@ -1687,10 +1687,14 @@ export default function Home() {
                         !url.hostname.includes('127.0.0.1');
       
       if (needsProxy) {
-        return `/api/video-proxy?url=${encodeURIComponent(originalUrl)}`;
+        const proxiedUrl = `/api/video-proxy?url=${encodeURIComponent(originalUrl)}`;
+        console.log('🔄 Proxying video URL:', originalUrl, '→', proxiedUrl);
+        return proxiedUrl;
       }
+      console.log('🔄 Using direct video URL:', originalUrl);
       return originalUrl;
-    } catch {
+    } catch (error) {
+      console.error('❌ Error parsing video URL:', originalUrl, error);
       return originalUrl;
     }
   }, []);

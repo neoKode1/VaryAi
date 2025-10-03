@@ -63,6 +63,7 @@ export async function GET(request: NextRequest) {
   
   try {
     console.log(`🎬 Proxying video from: ${videoUrl}`);
+    console.log(`🔍 Parsed URL hostname: ${new URL(videoUrl).hostname}`);
     
     // Fetch the video with proper headers
     const response = await fetch(videoUrl, {
