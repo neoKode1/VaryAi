@@ -23,6 +23,7 @@ const nextConfig = {
               "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
               "font-src 'self' https://fonts.gstatic.com https://m.stripe.network data:",
               "img-src 'self' data: https: blob:",
+              "media-src 'self' data: https: blob: https://api.minimax.io https://cdn.fal.ai https://v3.fal.media https://v3b.fal.media https://*.fal.media https://storage.googleapis.com https://s3.amazonaws.com https://cdn.runwayml.com https://public-cdn-video-data-algeng.oss-cn-wulanchabu.aliyuncs.com https://dnznrvs05pmza.cloudfront.net https://*.cloudfront.net",
               "connect-src 'self' https://api.stripe.com https://vqmzepfbgbwtzbpmrevx.supabase.co https://*.supabase.co https://api.minimax.io https://cdn.fal.ai https://v3.fal.media https://v3b.fal.media https://*.fal.media https://storage.googleapis.com https://s3.amazonaws.com https://cdn.runwayml.com https://api.anthropic.com https://dnznrvs05pmza.cloudfront.net https://*.cloudfront.net",
               "frame-src 'self' https://js.stripe.com https://hooks.stripe.com",
               "object-src 'none'",
