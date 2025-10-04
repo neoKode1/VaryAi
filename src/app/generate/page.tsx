@@ -2124,9 +2124,41 @@ export default function Home() {
         currentStep: 'Processing with Gemini AI...'
       });
 
-      // Use the original prompt or a default variation prompt
-      const varyPrompt = originalPrompt || prompt.trim() || 'Generate 4 new variations of this character from different angles';
-      console.log('📝 Using prompt:', varyPrompt);
+      // Use the same variation logic as the main Generate button
+      const basePrompt = originalPrompt || prompt.trim() || 'character';
+      
+      // Extract core character description from prompt (same logic as main Generate)
+      const extractCharacterDescription = (fullPrompt: string): string => {
+        let character = fullPrompt
+          .replace(/show this character from a low angle view/gi, '')
+          .replace(/show this character from a high angle view/gi, '')
+          .replace(/show this character from/gi, '')
+          .replace(/this character/gi, 'character')
+          .replace(/from a/gi, '')
+          .replace(/view/gi, '')
+          .replace(/angle/gi, '')
+          .replace(/\s+/g, ' ')
+          .trim();
+        
+        if (character.length < 5) {
+          character = 'character';
+        }
+        
+        return character;
+      };
+      
+      const characterDescription = extractCharacterDescription(basePrompt);
+      console.log(`📝 Extracted character description: "${characterDescription}"`);
+      
+      // Create 4 distinct shot types for the character - same as main Generate
+      const variationPrompts = [
+        `${characterDescription} - close-up`,
+        `${characterDescription} - wide shot`,
+        `${characterDescription} - side profile`,
+        `${characterDescription} - low angle`
+      ];
+      
+      console.log('📝 Variation prompts:', variationPrompts);
 
       console.log('🔄 Making API call to /api/vary-character...');
       const response = await fetch('/api/vary-character', {
@@ -2138,7 +2170,8 @@ export default function Home() {
         body: JSON.stringify({
           images: [base64Image],
           mimeTypes: ['image/jpeg'], // Default MIME type for URL-converted images
-          prompt: varyPrompt,
+          prompt: basePrompt,
+          variationPrompts: variationPrompts,
           generationMode: generationMode,
           generationSettings: generationSettings
         }),
