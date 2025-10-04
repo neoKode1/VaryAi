@@ -2100,11 +2100,9 @@ export default function Home() {
       console.log('🔄 Starting image variation process...');
       setError(null);
       setVariations([]);
-      setProcessing({
-        isProcessing: true,
-        progress: 10,
-        currentStep: 'Converting image...'
-      });
+      
+      // Show processing modal like the regular Generate button
+      startProcessing('image', 'Converting image...', 10);
 
       // Get authentication token
       const { data: { session } } = await supabase.auth.getSession();
@@ -2118,11 +2116,7 @@ export default function Home() {
       const base64Image = await urlToBase64(imageUrl);
       console.log('✅ Base64 conversion complete, length:', base64Image.length);
       
-      setProcessing({
-        isProcessing: true,
-        progress: 30,
-        currentStep: 'Processing with Gemini AI...'
-      });
+      setProcessing(prev => ({ ...prev, progress: 30, currentStep: 'Processing with Gemini AI...' }));
 
       // Use the same variation logic as the main Generate button
       const basePrompt = originalPrompt || prompt.trim() || 'character';
@@ -2214,11 +2208,7 @@ export default function Home() {
       }
       
       setTimeout(() => {
-        setProcessing({
-          isProcessing: false,
-          progress: 100,
-          currentStep: 'Complete!'
-        });
+        stopProcessing();
       }, 500);
 
     } catch (error) {
@@ -2226,11 +2216,7 @@ export default function Home() {
       console.error('❌ Error type:', typeof error);
       console.error('❌ Error message:', error instanceof Error ? error.message : 'Unknown error');
       setError(error instanceof Error ? error.message : 'Failed to vary image');
-      setProcessing({
-        isProcessing: false,
-        progress: 0,
-        currentStep: ''
-      });
+      stopProcessing();
     } finally {
       setProcessingAction(null);
     }
