@@ -1148,27 +1148,20 @@ RESPECT THE USER'S CREATIVE VISION - do not standardize or genericize their spec
                 setTimeout(() => reject(new Error('FAL AI request timeout after 60 seconds')), 60000);
               });
               
-              const falPromise = fal.subscribe(modelName, {
-                input: falInput,
-                logs: true,
-                onQueueUpdate: (update) => {
-                  console.log(`\n📊 [FAL AI PROGRESS] ===== QUEUE UPDATE =====`);
-                  console.log(`📊 [FAL AI PROGRESS] Status: ${update.status}`);
-                  console.log(`📊 [FAL AI PROGRESS] Timestamp: ${new Date().toISOString()}`);
-                  if (update.status === "IN_PROGRESS") {
-                    console.log(`📊 [FAL AI PROGRESS] Generation progress for ${variation.angle}:`, update.logs?.map(log => log.message).join(', '));
-                    console.log(`📊 [FAL AI PROGRESS] Logs:`, update.logs);
-                  }
-                  if (update.status === "COMPLETED") {
-                    console.log(`📊 [FAL AI PROGRESS] ✅ Generation completed!`);
-                  }
-                  console.log(`📊 [FAL AI PROGRESS] ===== END QUEUE UPDATE =====\n`);
-                },
+              // Use the queue system with proper schema for nano-banana
+              const falPromise = fal.queue.submit("fal-ai/nano-banana/edit", {
+                input: {
+                  prompt: nanoBananaPrompt,
+                  image_urls: imageUrls,
+                  num_images: 1,
+                  output_format: generationSettings?.outputFormat || "jpeg",
+                  sync_mode: false
+                }
               });
               
-              let result;
+              let queueResult;
               try {
-                result = await Promise.race([falPromise, timeoutPromise]);
+                queueResult = await Promise.race([falPromise, timeoutPromise]);
               } catch (error) {
                 if (error.message.includes('timeout')) {
                   console.error(`⏰ [TIMEOUT] FAL AI request timed out after 60 seconds for ${variation.angle}`);
@@ -1179,28 +1172,54 @@ RESPECT THE USER'S CREATIVE VISION - do not standardize or genericize their spec
                 }
               }
               
-              console.log(`\n✅ [FAL AI RESPONSE] ===== NANO BANANA RESPONSE =====`);
-              console.log(`✅ [FAL AI RESPONSE] API call successful!`);
+              console.log(`\n✅ [FAL AI RESPONSE] ===== QUEUE SUBMISSION RESPONSE =====`);
+              console.log(`✅ [FAL AI RESPONSE] Queue submission successful!`);
               console.log(`✅ [FAL AI RESPONSE] Timestamp: ${new Date().toISOString()}`);
-              console.log(`✅ [FAL AI RESPONSE] Full response object:`, JSON.stringify(result, null, 2));
-              console.log(`✅ [FAL AI RESPONSE] Response data:`, result.data);
-              console.log(`✅ [FAL AI RESPONSE] Images in response:`, result.data?.images?.length || 0);
-              if (result.data?.images) {
-                result.data.images.forEach((img: any, i: number) => {
-                  console.log(`✅ [FAL AI RESPONSE] Image ${i + 1}:`, {
-                    url: img.url,
-                    content_type: img.content_type,
-                    file_name: img.file_name,
-                    file_size: img.file_size
-                  });
-                });
-              }
+              console.log(`✅ [FAL AI RESPONSE] Request ID: ${queueResult.request_id}`);
+              console.log(`✅ [FAL AI RESPONSE] Status: ${queueResult.status}`);
               console.log(`✅ [FAL AI RESPONSE] ===== END RESPONSE =====\n`);
               
-              console.log(`✅ [MODEL API] ${modelName} API call successful with official parameters!`);
+              // Poll for completion using the queue system
+              console.log(`⏳ [QUEUE POLLING] Waiting for completion of request: ${queueResult.request_id}`);
               
-              console.log(`✅ [CHARACTER COMBINATION] ${modelName} API call completed for ${variation.angle}`);
-              console.log(`📊 [CHARACTER COMBINATION] Result data:`, result.data);
+              let result;
+              const maxPollingAttempts = 30; // 30 attempts * 2 seconds = 60 seconds max
+              let pollingAttempts = 0;
+              
+              while (pollingAttempts < maxPollingAttempts) {
+                try {
+                  const status = await fal.queue.status("fal-ai/nano-banana/edit", queueResult.request_id);
+                  console.log(`📊 [POLLING] Attempt ${pollingAttempts + 1}: Status = ${status.status}`);
+                  
+                  if (status.status === 'COMPLETED') {
+                    // Get the actual results
+                    result = await fal.queue.result("fal-ai/nano-banana/edit", queueResult.request_id);
+                    console.log(`🎉 [COMPLETED] Got final result for ${variation.angle}`);
+                    break;
+                  } else if (status.status === 'FAILED') {
+                    throw new Error(`Generation failed for ${variation.angle}`);
+                  }
+                  
+                  pollingAttempts++;
+                  await new Promise(resolve => setTimeout(resolve, 2000)); // Wait 2 seconds
+                } catch (error) {
+                  console.error(`❌ [POLLING ERROR] Attempt ${pollingAttempts + 1}:`, error);
+                  pollingAttempts++;
+                  if (pollingAttempts >= maxPollingAttempts) {
+                    throw new Error(`Polling timeout for ${variation.angle}`);
+                  }
+                  await new Promise(resolve => setTimeout(resolve, 2000));
+                }
+              }
+              
+              if (!result) {
+                throw new Error(`Failed to get result for ${variation.angle} after ${maxPollingAttempts} polling attempts`);
+              }
+              
+              console.log(`✅ [MODEL API] nano-banana queue API call successful with official parameters!`);
+              
+              console.log(`✅ [CHARACTER COMBINATION] nano-banana API call completed for ${variation.angle}`);
+              console.log(`📊 [CHARACTER COMBINATION] Result data:`, result);
               
               // Debug: Check if FAL AI actually used our aspect ratio parameter
               console.log(`🔍 [FAL AI DEBUG] Full FAL AI response:`, JSON.stringify(result, null, 2));
@@ -1210,7 +1229,7 @@ RESPECT THE USER'S CREATIVE VISION - do not standardize or genericize their spec
             console.log(`✅ Image ${index + 1} generated successfully`);
             
             // Stage 2: Reframe the image to the desired aspect ratio if needed
-            let finalImageUrl = result.data.images[0]?.url;
+            let finalImageUrl = result.images[0]?.url;
             if (finalImageUrl && generationSettings?.aspectRatio && generationSettings.aspectRatio !== '1:1') {
               console.log(`🔄 [ASPECT RATIO REFRAME] Starting reframe process...`);
               console.log(`🔄 [ASPECT RATIO REFRAME] Original image: ${finalImageUrl}`);
