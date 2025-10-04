@@ -2144,12 +2144,13 @@ export default function Home() {
       const characterDescription = extractCharacterDescription(basePrompt);
       console.log(`📝 Extracted character description: "${characterDescription}"`);
       
-      // Create 4 distinct shot types for the character - same as main Generate
+      // Create 4 specific shot variations of the EXISTING image/scene
+      // These prompts tell the AI to analyze the current image and create different camera angles
       const variationPrompts = [
-        `${characterDescription} - close-up`,
-        `${characterDescription} - wide shot`,
-        `${characterDescription} - side profile`,
-        `${characterDescription} - low angle`
+        `Create a close-up shot of the character in this exact scene, focusing on their face and upper body`,
+        `Create a wide shot of this same scene, showing more of the environment and background`,
+        `Create a side profile shot of the character from a 90-degree angle to the left or right`,
+        `Create a low angle shot looking up at the character from ground level`
       ];
       
       console.log('📝 Variation prompts:', variationPrompts);
@@ -3605,12 +3606,12 @@ export default function Home() {
       const characterDescription = extractCharacterDescription(prompt.trim());
       console.log(`📝 Extracted character description: "${characterDescription}"`);
       
-      // Create 4 distinct shot types for the character - optimized for FAL AI compatibility
+      // Create 4 specific shot variations that will generate different camera angles
       const variationPrompts = [
-        `${characterDescription} - close-up`,
-        `${characterDescription} - wide shot`,
-        `${characterDescription} - side profile`,
-        `${characterDescription} - low angle`
+        `Create a close-up shot of ${characterDescription}, focusing on their face and upper body`,
+        `Create a wide shot of ${characterDescription}, showing more of the environment and background`,
+        `Create a side profile shot of ${characterDescription} from a 90-degree angle`,
+        `Create a low angle shot looking up at ${characterDescription} from ground level`
       ];
 
       // Use the new /api/vary-character endpoint for all models
