@@ -985,7 +985,7 @@ RESPECT THE USER'S CREATIVE VISION - do not standardize or genericize their spec
             console.log(`🖼️ Generating image ${index + 1}/4 for: ${variation.angle}`);
             
             // Use variationPrompts if available, otherwise fall back to the original logic
-            let nanoBananaPrompt;
+            let nanoBananaPrompt: string;
             
             if (variationPrompts && variationPrompts[index]) {
               // Use the specific variation prompt from frontend
@@ -1163,7 +1163,7 @@ RESPECT THE USER'S CREATIVE VISION - do not standardize or genericize their spec
               try {
                 result = await Promise.race([falPromise, timeoutPromise]);
               } catch (error) {
-                if (error.message.includes('timeout')) {
+                if (error instanceof Error && error.message.includes('timeout')) {
                   console.error(`⏰ [TIMEOUT] FAL AI request timed out after 60 seconds for ${variation.angle}`);
                   throw new Error(`Generation timeout: ${variation.angle} took too long to complete`);
                 } else {
@@ -1176,10 +1176,10 @@ RESPECT THE USER'S CREATIVE VISION - do not standardize or genericize their spec
               console.log(`✅ [FAL AI RESPONSE] API call successful!`);
               console.log(`✅ [FAL AI RESPONSE] Timestamp: ${new Date().toISOString()}`);
               console.log(`✅ [FAL AI RESPONSE] Full response object:`, JSON.stringify(result, null, 2));
-              console.log(`✅ [FAL AI RESPONSE] Response data:`, result.data);
-              console.log(`✅ [FAL AI RESPONSE] Images in response:`, result.data?.images?.length || 0);
-              if (result.data?.images) {
-                result.data.images.forEach((img: any, i: number) => {
+              console.log(`✅ [FAL AI RESPONSE] Response data:`, (result as any).data);
+              console.log(`✅ [FAL AI RESPONSE] Images in response:`, (result as any).data?.images?.length || 0);
+              if ((result as any).data?.images) {
+                (result as any).data.images.forEach((img: any, i: number) => {
                   console.log(`✅ [FAL AI RESPONSE] Image ${i + 1}:`, {
                     url: img.url,
                     content_type: img.content_type,
@@ -1203,7 +1203,7 @@ RESPECT THE USER'S CREATIVE VISION - do not standardize or genericize their spec
             console.log(`✅ Image ${index + 1} generated successfully`);
             
             // Stage 2: Reframe the image to the desired aspect ratio if needed
-            let finalImageUrl = result.data.images[0]?.url;
+            let finalImageUrl = (result as any).data.images[0]?.url;
             if (finalImageUrl && generationSettings?.aspectRatio && generationSettings.aspectRatio !== '1:1') {
               console.log(`🔄 [ASPECT RATIO REFRAME] Starting reframe process...`);
               console.log(`🔄 [ASPECT RATIO REFRAME] Original image: ${finalImageUrl}`);

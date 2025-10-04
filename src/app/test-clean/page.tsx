@@ -43,7 +43,7 @@ export default function TestCleanPage() {
       }
     } catch (error) {
       console.error('❌ Error:', error);
-      setResult({ error: error.message });
+      setResult({ error: error instanceof Error ? error.message : 'Unknown error' });
     } finally {
       setLoading(false);
     }

@@ -83,7 +83,7 @@ export async function POST(request: NextRequest) {
     console.error('❌ Error in clean nano-banana API:', error);
     return NextResponse.json({
       success: false,
-      error: error.message || 'Internal server error'
+      error: error instanceof Error ? error.message : 'Internal server error'
     }, { status: 500 });
   }
 }
@@ -103,7 +103,7 @@ export async function GET(request: NextRequest) {
   try {
     console.log(`🔍 Checking status for request: ${request_id}`);
     
-    const status = await fal.queue.status("fal-ai/nano-banana/edit", request_id);
+    const status = await fal.queue.status("fal-ai/nano-banana/edit", { requestId: request_id });
     
     console.log(`📊 Status for ${request_id}:`, status);
     
@@ -111,16 +111,16 @@ export async function GET(request: NextRequest) {
       success: true,
       request_id,
       status: status.status,
-      queue_position: status.queue_position,
-      logs: status.logs,
-      metrics: status.metrics
+      queue_position: (status as any).queuePosition,
+      logs: (status as any).logs,
+      metrics: (status as any).metrics
     });
     
   } catch (error) {
     console.error('❌ Error checking status:', error);
     return NextResponse.json({
       success: false,
-      error: error.message || 'Failed to check status'
+      error: error instanceof Error ? error.message : 'Failed to check status'
     }, { status: 500 });
   }
 }

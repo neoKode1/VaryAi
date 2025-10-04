@@ -28,7 +28,7 @@ export async function POST(request: NextRequest) {
       // Update the database with the completed generation
       // We'll need to store the request_id to match it with our pending requests
       if (images.length > 0) {
-        console.log('🔔 Image URLs:', images.map(img => img.url));
+        console.log('🔔 Image URLs:', images.map((img: any) => img.url));
         
         // TODO: Update the database record for this request_id
         // This will be implemented once we have the request tracking system
