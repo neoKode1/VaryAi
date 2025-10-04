@@ -2187,14 +2187,14 @@ export default function Home() {
       const storedVariations: StoredVariation[] = newVariations.map((variation: CharacterVariation, index: number) => ({
         ...variation,
         timestamp: Date.now() + index,
-        originalPrompt: varyPrompt,
+        originalPrompt: basePrompt,
         fileType: variation.fileType || (variation.videoUrl ? 'video' : 'image')
       }));
       setVariations(storedVariations);
       
       // Track usage
       await trackUsage('image_generation', 'nano_banana', {
-        prompt: varyPrompt,
+        prompt: basePrompt,
         variations_count: newVariations.length,
         service: 'nano_banana'
       });
@@ -2202,7 +2202,7 @@ export default function Home() {
       // Add to gallery
       if (newVariations.length > 0) {
         console.log('📸 Adding to gallery with addToGallery function...');
-        addToGallery(newVariations, varyPrompt, imageUrl);
+        addToGallery(newVariations, basePrompt, imageUrl);
       } else {
         console.warn('⚠️ No variations received from API');
       }
