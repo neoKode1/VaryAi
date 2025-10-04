@@ -3561,13 +3561,37 @@ export default function Home() {
       
       setProcessing(prev => ({ ...prev, progress: 60, currentStep: 'Generating variations...' }));
       
+      // Extract core character description from user prompt
+      const extractCharacterDescription = (fullPrompt: string): string => {
+        // Remove common phrases that add length
+        let character = fullPrompt
+          .replace(/show this character from a low angle view/gi, '')
+          .replace(/show this character from a high angle view/gi, '')
+          .replace(/show this character from/gi, '')
+          .replace(/this character/gi, 'character')
+          .replace(/from a/gi, '')
+          .replace(/view/gi, '')
+          .replace(/angle/gi, '')
+          .replace(/\s+/g, ' ')
+          .trim();
+        
+        // If we removed too much, use a simple fallback
+        if (character.length < 5) {
+          character = 'character';
+        }
+        
+        return character;
+      };
+      
+      const characterDescription = extractCharacterDescription(prompt.trim());
+      console.log(`📝 Extracted character description: "${characterDescription}"`);
+      
       // Create 4 distinct shot types for the character - optimized for FAL AI compatibility
-      const basePrompt = prompt.trim();
       const variationPrompts = [
-        `${basePrompt} - close-up`,
-        `${basePrompt} - wide shot`,
-        `${basePrompt} - side profile`,
-        `${basePrompt} - low angle`
+        `${characterDescription} - close-up`,
+        `${characterDescription} - wide shot`,
+        `${characterDescription} - side profile`,
+        `${characterDescription} - low angle`
       ];
 
       // Use the new /api/vary-character endpoint for all models
