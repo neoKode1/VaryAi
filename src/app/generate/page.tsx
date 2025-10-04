@@ -2144,14 +2144,44 @@ export default function Home() {
       const characterDescription = extractCharacterDescription(basePrompt);
       console.log(`📝 Extracted character description: "${characterDescription}"`);
       
-      // Create 4 specific shot variations of the EXISTING image/scene
-      // These prompts tell the AI to analyze the current image and create different camera angles
-      const variationPrompts = [
-        `Create a close-up shot of the character in this exact scene, focusing on their face and upper body`,
-        `Create a wide shot of this same scene, showing more of the environment and background`,
-        `Create a side profile shot of the character from a 90-degree angle to the left or right`,
-        `Create a low angle shot looking up at the character from ground level`
+      // Create 4 character-specific close-up variations with randomness
+      // Always include a face/head shot, then randomly select 3 other body part close-ups
+      
+      // Define possible close-up variations for different body parts
+      const closeUpOptions = [
+        `Create a close-up shot of the character's mid-section only, showing their torso and waist in this exact scene`,
+        `Create a close-up shot at floor level, focusing on the character's legs and feet in this exact scene`,
+        `Create a close-up shot of the character's hands, showing any objects they might be holding or their hand gestures in this exact scene`,
+        `Create a close-up shot of the character's shoulders and upper chest area in this exact scene`,
+        `Create a close-up shot at mid-range level, focusing on the character's lower body and surroundings in this exact scene`,
+        `Create a close-up shot of the character's arms and hands area in this exact scene`
       ];
+
+      // Shuffle the options to pick randomly
+      const shuffledOptions = closeUpOptions.sort(() => 0.5 - Math.random());
+
+      // Always start with face/head close-up (guaranteed)
+      const variationPrompts = [
+        `Create a close-up shot of the character's face and head only in this exact scene`
+      ];
+
+      // Add 3 random close-up variations (ensuring no duplicates)
+      const selectedOptions = new Set<string>();
+      for (let i = 0; i < 3 && selectedOptions.size < 3; i++) {
+        const randomOption = shuffledOptions[i];
+        if (!selectedOptions.has(randomOption)) {
+          variationPrompts.push(randomOption);
+          selectedOptions.add(randomOption);
+        }
+      }
+
+      // Fallback: if we somehow don't have 4 variations, fill with remaining options
+      while (variationPrompts.length < 4) {
+        const fallbackOption = closeUpOptions[Math.floor(Math.random() * closeUpOptions.length)];
+        if (!variationPrompts.includes(fallbackOption)) {
+          variationPrompts.push(fallbackOption);
+        }
+      }
       
       console.log('📝 Variation prompts:', variationPrompts);
 
