@@ -3561,12 +3561,12 @@ export default function Home() {
       
       setProcessing(prev => ({ ...prev, progress: 60, currentStep: 'Generating variations...' }));
       
-      // Create 4 distinct shot types for the character
+      // Create 4 distinct shot types for the character - simplified for FAL AI compatibility
       const variationPrompts = [
-        `Close-up shot of ${prompt.trim()}, dramatic lighting, intense focus on facial features and expression`,
-        `Wide shot of ${prompt.trim()}, full body view in environmental context, cinematic composition`,
-        `Side profile shot of ${prompt.trim()}, three-quarter angle, professional portrait lighting`,
-        `Low angle shot of ${prompt.trim()}, looking up with heroic perspective, dramatic shadows and lighting`
+        `${prompt.trim()} - close-up shot`,
+        `${prompt.trim()} - wide shot`,
+        `${prompt.trim()} - side profile shot`,
+        `${prompt.trim()} - low angle shot`
       ];
 
       // Use the new /api/vary-character endpoint for all models
