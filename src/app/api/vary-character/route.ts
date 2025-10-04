@@ -997,6 +997,14 @@ RESPECT THE USER'S CREATIVE VISION - do not standardize or genericize their spec
               console.log(`📝 Using fallback variation prompt ${index + 1}: ${nanoBananaPrompt.substring(0, 100)}...`);
             }
             
+            // Sanitize prompt to prevent 422 validation errors
+            nanoBananaPrompt = nanoBananaPrompt
+              .replace(/["'`]/g, '') // Remove quotes that can cause validation errors
+              .replace(/\s+/g, ' ') // Normalize whitespace
+              .trim();
+            
+            console.log(`📝 Sanitized prompt ${index + 1}: ${nanoBananaPrompt}`);
+            
             // Add Nano Banana multi-character best practices for character combination
             if (isCharacterCombination) {
               console.log(`🎭 [CHARACTER COMBINATION] Using Gemini analysis for variation ${index + 1}: ${variation.description}`);
@@ -1172,12 +1180,17 @@ RESPECT THE USER'S CREATIVE VISION - do not standardize or genericize their spec
                 timestamp: new Date().toISOString()
               });
               
-              console.log(`\n⏳ [FAL AI CALL] ===== STARTING FAL.SUBSCRIBE =====`);
+              console.log(`\n⏳ [FAL AI CALL] ===== STARTING FAL.SUBSCRIBE WITH TIMEOUT =====`);
               console.log(`⏳ [FAL AI CALL] Timestamp: ${new Date().toISOString()}`);
               console.log(`⏳ [FAL AI CALL] Model: ${modelName}`);
-              console.log(`⏳ [FAL AI CALL] Starting API call...`);
+              console.log(`⏳ [FAL AI CALL] Starting API call with 60s timeout...`);
               
-              const result = await fal.subscribe(modelName, {
+              // Add timeout to prevent hanging requests
+              const timeoutPromise = new Promise((_, reject) => {
+                setTimeout(() => reject(new Error('FAL AI request timeout after 60 seconds')), 60000);
+              });
+              
+              const falPromise = fal.subscribe(modelName, {
                 input: falInput,
                 logs: true,
                 onQueueUpdate: (update) => {
@@ -1194,6 +1207,19 @@ RESPECT THE USER'S CREATIVE VISION - do not standardize or genericize their spec
                   console.log(`📊 [FAL AI PROGRESS] ===== END QUEUE UPDATE =====\n`);
                 },
               });
+              
+              let result;
+              try {
+                result = await Promise.race([falPromise, timeoutPromise]);
+              } catch (error) {
+                if (error.message.includes('timeout')) {
+                  console.error(`⏰ [TIMEOUT] FAL AI request timed out after 60 seconds for ${variation.angle}`);
+                  throw new Error(`Generation timeout: ${variation.angle} took too long to complete`);
+                } else {
+                  console.error(`❌ [ERROR] FAL AI request failed for ${variation.angle}:`, error);
+                  throw error;
+                }
+              }
               
               console.log(`\n✅ [FAL AI RESPONSE] ===== NANO BANANA RESPONSE =====`);
               console.log(`✅ [FAL AI RESPONSE] API call successful!`);
