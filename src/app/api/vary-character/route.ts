@@ -396,7 +396,7 @@ export async function POST(request: NextRequest) {
     console.log('📝 Generation mode:', body.generationMode);
     console.log('📝 Generation settings:', body.generationSettings);
     
-    const { images, prompt, generationSettings, generationMode } = body;
+    const { images, prompt, variationPrompts, generationSettings, generationMode } = body;
 
     console.log('✅ Request body parsed successfully');
     console.log(`💬 Prompt: "${prompt}"`);
@@ -909,6 +909,34 @@ RESPECT THE USER'S CREATIVE VISION - do not standardize or genericize their spec
     const variations = parseGeminiResponse(text);
     console.log(`✅ Parsed ${variations.length} variations successfully`);
     
+    // If variationPrompts are provided, update the variations with better labels
+    if (variationPrompts && variationPrompts.length > 0) {
+      console.log('📝 Updating variations with frontend-provided prompts and labels...');
+      variationPrompts.forEach((variationPrompt, index) => {
+        if (variations[index]) {
+          // Extract a better angle label from the variation prompt
+          let angleLabel = 'Custom Shot';
+          if (variationPrompt.toLowerCase().includes('close-up') || variationPrompt.toLowerCase().includes('extreme close-up')) {
+            angleLabel = 'Close-up Shot';
+          } else if (variationPrompt.toLowerCase().includes('wide shot') || variationPrompt.toLowerCase().includes('extreme wide shot')) {
+            angleLabel = 'Wide Shot';
+          } else if (variationPrompt.toLowerCase().includes('low angle') || variationPrompt.toLowerCase().includes('worm')) {
+            angleLabel = 'Low Angle Shot';
+          } else if (variationPrompt.toLowerCase().includes('high angle') || variationPrompt.toLowerCase().includes('bird')) {
+            angleLabel = 'High Angle Shot';
+          } else if (variationPrompt.toLowerCase().includes('side profile') || variationPrompt.toLowerCase().includes('profile')) {
+            angleLabel = 'Side Profile Shot';
+          } else if (variationPrompt.toLowerCase().includes('tracking shot')) {
+            angleLabel = 'Tracking Shot';
+          }
+          
+          // Update the variation with the better label
+          variations[index].angle = angleLabel;
+          console.log(`📝 Updated variation ${index + 1} angle to: ${angleLabel}`);
+        }
+      });
+    }
+    
     if (isCharacterCombination) {
       console.log('🎭 [CHARACTER COMBINATION] Parsed variations:');
       variations.forEach((variation, index) => {
@@ -956,8 +984,18 @@ RESPECT THE USER'S CREATIVE VISION - do not standardize or genericize their spec
           try {
             console.log(`🖼️ Generating image ${index + 1}/4 for: ${variation.angle}`);
             
-            // Use the user's original prompt with enhanced quality instructions
-            let nanoBananaPrompt = `${prompt} - ${variation.angle.toLowerCase()}`;
+            // Use variationPrompts if available, otherwise fall back to the original logic
+            let nanoBananaPrompt;
+            
+            if (variationPrompts && variationPrompts[index]) {
+              // Use the specific variation prompt from frontend
+              nanoBananaPrompt = variationPrompts[index];
+              console.log(`📝 Using frontend variation prompt ${index + 1}: ${nanoBananaPrompt.substring(0, 100)}...`);
+            } else {
+              // Fallback to original logic
+              nanoBananaPrompt = `${prompt} - ${variation.angle.toLowerCase()}`;
+              console.log(`📝 Using fallback variation prompt ${index + 1}: ${nanoBananaPrompt.substring(0, 100)}...`);
+            }
             
             // Add Nano Banana multi-character best practices for character combination
             if (isCharacterCombination) {
@@ -965,7 +1003,7 @@ RESPECT THE USER'S CREATIVE VISION - do not standardize or genericize their spec
               // Use the Gemini analysis results for specific character descriptions
               nanoBananaPrompt = `Create a scene with the EXACT same characters from the reference images. `;
               nanoBananaPrompt += `CHARACTER ANALYSIS FROM GEMINI: ${variation.description} `;
-              nanoBananaPrompt += `Scene action: ${prompt} - ${variation.angle.toLowerCase()}. `;
+              nanoBananaPrompt += `Scene action: ${variationPrompts && variationPrompts[index] ? variationPrompts[index] : `${prompt} - ${variation.angle.toLowerCase()}`}. `;
               nanoBananaPrompt += `CRITICAL CHARACTER PRESERVATION: `;
               nanoBananaPrompt += `- Maintain identical character appearance from reference images `;
               nanoBananaPrompt += `- Preserve exact age, gender, and physical characteristics `;

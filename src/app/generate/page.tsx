@@ -3561,12 +3561,12 @@ export default function Home() {
       
       setProcessing(prev => ({ ...prev, progress: 60, currentStep: 'Generating variations...' }));
       
-      // Create 4 distinct prompts for different angles and perspectives
+      // Create 4 distinct shot types for the character
       const variationPrompts = [
-        `${prompt.trim()} - extreme close-up shot, dramatic lighting, intense focus on facial features, macro photography style`,
-        `${prompt.trim()} - side profile view, three-quarter angle, cinematic composition, professional portrait lighting`,
-        `${prompt.trim()} - low angle shot looking up, heroic perspective, dramatic shadows, worm's eye view`,
-        `${prompt.trim()} - high angle shot looking down, bird's eye view, environmental context, wide shot composition`
+        `Close-up shot of ${prompt.trim()}, dramatic lighting, intense focus on facial features and expression`,
+        `Wide shot of ${prompt.trim()}, full body view in environmental context, cinematic composition`,
+        `Side profile shot of ${prompt.trim()}, three-quarter angle, professional portrait lighting`,
+        `Low angle shot of ${prompt.trim()}, looking up with heroic perspective, dramatic shadows and lighting`
       ];
 
       // Use the new /api/vary-character endpoint for all models
@@ -3581,6 +3581,7 @@ export default function Home() {
           images: uploadedFiles.map(img => img.base64),
           mimeTypes: uploadedFiles.map(img => img.mimeType || 'image/jpeg'),
           prompt: prompt.trim(),
+          variationPrompts: variationPrompts,
           generationMode: generationMode,
           generationSettings: generationSettings
         }),

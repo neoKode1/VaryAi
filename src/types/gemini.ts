@@ -2,6 +2,7 @@ export interface CharacterVariationRequest {
   images: string[]; // array of base64 encoded images
   mimeTypes?: string[]; // array of MIME types for each image
   prompt: string; // user's angle/pose variation prompt
+  variationPrompts?: string[]; // specific prompts for each variation (close-up, wide shot, etc.)
   useFluxDev?: boolean; // flag to use Flux Dev as fallback instead of Nano Banana
   useSeedream4?: boolean; // flag to use Seedream 4 instead of Nano Banana
   generationMode?: string; // the selected generation mode (e.g., 'seedream-4-edit', 'gemini-25-flash-image-edit')
