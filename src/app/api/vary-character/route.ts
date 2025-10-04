@@ -1007,60 +1007,18 @@ RESPECT THE USER'S CREATIVE VISION - do not standardize or genericize their spec
             
             // Add Nano Banana multi-character best practices for character combination
             if (isCharacterCombination) {
-              console.log(`🎭 [CHARACTER COMBINATION] Using Gemini analysis for variation ${index + 1}: ${variation.description}`);
-              // Use the Gemini analysis results for specific character descriptions
-              nanoBananaPrompt = `Create a scene with the EXACT same characters from the reference images. `;
-              nanoBananaPrompt += `CHARACTER ANALYSIS FROM GEMINI: ${variation.description} `;
-              nanoBananaPrompt += `Scene action: ${variationPrompts && variationPrompts[index] ? variationPrompts[index] : `${prompt} - ${variation.angle.toLowerCase()}`}. `;
-              nanoBananaPrompt += `CRITICAL CHARACTER PRESERVATION: `;
-              nanoBananaPrompt += `- Maintain identical character appearance from reference images `;
-              nanoBananaPrompt += `- Preserve exact age, gender, and physical characteristics `;
-              nanoBananaPrompt += `- Keep same clothing, hairstyle, and distinctive features `;
-              nanoBananaPrompt += `- Use clear spatial positioning for both characters `;
-              nanoBananaPrompt += `- Ensure both characters are clearly visible and recognizable `;
-              nanoBananaPrompt += `- Create natural interactions while preserving character identity `;
-              nanoBananaPrompt += `- Generate high-quality scene with proper lighting and composition`;
-              console.log(`📝 [CHARACTER COMBINATION] Final FAL prompt for variation ${index + 1}: ${nanoBananaPrompt.substring(0, 200)}...`);
+              console.log(`🎭 [CHARACTER COMBINATION] Using simplified prompt for variation ${index + 1}`);
+              // Use our simple variation prompts even for character combinations
+              // Keep the prompt short and focused on the shot type
+              if (variationPrompts && variationPrompts[index]) {
+                nanoBananaPrompt = variationPrompts[index];
+              } else {
+                nanoBananaPrompt = `${prompt} - ${variation.angle.toLowerCase()}`;
+              }
+              console.log(`📝 [CHARACTER COMBINATION] Final FAL prompt for variation ${index + 1}: ${nanoBananaPrompt}`);
             }
             
-            // Add quality enhancements based on the specific angle
-            if (variation.angle.toLowerCase().includes('worm') && variation.angle.toLowerCase().includes('eye')) {
-              nanoBananaPrompt += ', dramatic low-angle perspective, strong upward lighting, cinematic composition';
-            }
-            if (variation.angle.toLowerCase().includes('self-examination')) {
-              nanoBananaPrompt += ', detailed hand inspection, intense concentration, close-up focus on fingers';
-            }
-            if (variation.angle.toLowerCase().includes('sprawled')) {
-              nanoBananaPrompt += ', relaxed confident pose, proper body positioning, comfortable sprawl';
-            }
-            
-            // Add general quality improvements
-            nanoBananaPrompt += ', high detail, realistic textures, professional photography, sharp focus';
-            
-            // Add model-specific prompts based on combination mode
-            if (isCharacterCombination) {
-              // Nano Banana specific prompts for multi-character scenes
-              nanoBananaPrompt += ', character consistency maintained';
-              nanoBananaPrompt += ', natural character interactions';
-              nanoBananaPrompt += ', clear character positioning';
-              nanoBananaPrompt += ', realistic character relationships';
-              nanoBananaPrompt += ', professional character photography';
-              nanoBananaPrompt += ', cinematic character composition';
-              nanoBananaPrompt += ', detailed character expressions';
-              nanoBananaPrompt += ', proper character lighting';
-            } else if (isReferenceBasedGeneration) {
-              // Nano Banana specific prompts for reference-based generation
-              nanoBananaPrompt += ', reference style preserved';
-              nanoBananaPrompt += ', character identity maintained';
-              nanoBananaPrompt += ', style consistency throughout';
-              nanoBananaPrompt += ', reference elements extracted';
-              nanoBananaPrompt += ', high-fidelity reference matching';
-              nanoBananaPrompt += ', precise style transfer';
-              nanoBananaPrompt += ', reference-based composition';
-            } else {
-              // Add subtle negative prompts to prevent character duplication for single character
-              nanoBananaPrompt += ', single character only, no duplicates, no multiple versions of the same person';
-            }
+            // Keep prompts simple - no additional quality enhancements to prevent 422 errors
             
             console.log(`🎨 Enhanced Gemini 2.5 Flash Image prompt for ${variation.angle}:`, nanoBananaPrompt);
             
